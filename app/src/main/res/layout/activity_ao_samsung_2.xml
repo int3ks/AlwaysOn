@@ -24,7 +24,7 @@
             android:fontFamily="@font/samsung_sans"
             android:includeFontPadding="false"
             android:text="@string/clock"
-            android:textSize="36sp"/>
+            android:textSize="48sp"/>
 
         <TextView
             android:id="@+id/dateTxt"
@@ -34,7 +34,8 @@
             android:fontFamily="@font/samsung_sans"
             android:includeFontPadding="false"
             android:text="@string/date"
-            android:textSize="36sp" />
+            android:letterSpacing="0.1"
+            android:textSize="28sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -71,7 +72,9 @@
             android:fontFamily="@font/samsung_sans"
             android:includeFontPadding="false"
             android:text="@string/feature"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:singleLine="true"
+            />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/notifications_grid"
@@ -79,5 +82,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/aod_spacing"
             android:layout_marginBottom="@dimen/aod_spacing" />
+
+
     </LinearLayout>
+    <include layout="@layout/fingersensor" />
 </FrameLayout>

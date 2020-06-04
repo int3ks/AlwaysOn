@@ -69,7 +69,11 @@ class NotificationService : NotificationListenerService() {
                         count++
                         if (!apps.contains(notification.packageName)) {
                             apps += notification.packageName
-                            icons += notification.notification.smallIcon
+                            if(notification.notification.color!=0) {
+                                icons += notification.notification.smallIcon.setTint(notification.notification.color)
+                            }else{
+                                icons += notification.notification.smallIcon
+                            }
                         }
                     }
                 }

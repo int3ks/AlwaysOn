@@ -1,6 +1,7 @@
 package io.github.domi04151309.alwayson
 
 import android.Manifest
+import android.app.Activity
 import android.app.admin.DevicePolicyManager
 import android.content.*
 import android.content.pm.PackageManager
@@ -17,20 +18,21 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import io.github.domi04151309.alwayson.objects.Global
+import io.github.domi04151309.alwayson.objects.Root
 import io.github.domi04151309.alwayson.objects.Theme
 import io.github.domi04151309.alwayson.preferences.PermissionPreferences
 import io.github.domi04151309.alwayson.preferences.Preferences
-import io.github.domi04151309.alwayson.receivers.AdminReceiver
+
 import io.github.domi04151309.alwayson.services.ForegroundService
+import io.github.domi04151309.alwayson.services.MyAccessibility
 import java.util.*
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     private var clockTxt: TextView? = null
     private var dateTxt: TextView? = null
@@ -66,15 +68,19 @@ class MainActivity : AppCompatActivity() {
             return false
         }
 
-    private val isDeviceAdminOrRoot: Boolean
+    private val isDeviceAdmin: Boolean
         get() {
-            return if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("root_mode", false)) {
-                true
-            } else {
-                val policyManager = this
-                        .getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-                policyManager.isAdminActive(ComponentName(this, AdminReceiver::class.java))
+            return   MyAccessibility.isAccessibilitySettingsOn(this)
+
+        }
+
+    private val isDeviceRoot: Boolean
+        get() {
+            if (Root.request()) {
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("root_mode", true).apply()
             }
+
+            return PreferenceManager.getDefaultSharedPreferences(this).getBoolean("root_mode", false)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,6 +89,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+
+
+
 
         try {
             ContextCompat.startForegroundService(this, Intent(this, ForegroundService::class.java))
@@ -136,7 +145,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (!isDeviceAdminOrRoot) buildDialog(1)
+
+        isDeviceRoot
+        if (!isDeviceAdmin) buildDialog(1)
         if (!isNotificationServiceEnabled) buildDialog(2)
         if (!Settings.canDrawOverlays(this)) buildDialog(3)
     }
@@ -148,25 +159,36 @@ class MainActivity : AppCompatActivity() {
             1 -> {
                 builder.setTitle(R.string.device_admin)
                 builder.setMessage(R.string.device_admin_summary)
-                builder.setPositiveButton(resources.getString(android.R.string.ok)) { _, _ ->
-                    startActivity(Intent(this@MainActivity, PermissionPreferences::class.java))
+                builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
+                    //startActivity(Intent(this@MainActivity, PermissionPreferences::class.java))
+                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    dialog.cancel()
+                    finish()
                 }
-            } 2-> {
+            }
+            2 -> {
                 builder.setTitle(R.string.notification_listener_service)
                 builder.setMessage(R.string.notification_listener_service_summary)
-                builder.setPositiveButton(resources.getString(android.R.string.ok)) { _, _ ->
+                builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
                     startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                    dialog.cancel()
+                    finish()
                 }
-            } 3-> {
+            }
+            3 -> {
                 builder.setTitle(R.string.setup_draw_over_other_apps)
                 builder.setMessage(R.string.setup_draw_over_other_apps_summary)
-                builder.setPositiveButton(resources.getString(android.R.string.ok)) { _, _ ->
+                builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
                     startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
+                    dialog.cancel()
+                    finish()
                 }
-            } else -> return
+            }
+            else -> return
         }
 
         builder.setNegativeButton(resources.getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
+
         builder.show()
     }
 

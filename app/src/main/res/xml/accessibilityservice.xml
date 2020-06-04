@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- These options MUST be specified here in order for the events to be received on first
+ start in Android 4.1.1 -->
+<accessibility-service
+    android:canRetrieveWindowContent="false"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:description="@string/accessibility_service_description"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+/>

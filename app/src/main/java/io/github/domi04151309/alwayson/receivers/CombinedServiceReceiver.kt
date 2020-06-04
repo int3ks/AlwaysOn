@@ -1,16 +1,21 @@
 package io.github.domi04151309.alwayson.receivers
 
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
+
 import io.github.domi04151309.alwayson.Headset
 import io.github.domi04151309.alwayson.TurnOnScreen
 import io.github.domi04151309.alwayson.alwayson.AlwaysOn
+
 import io.github.domi04151309.alwayson.charging.Circle
 import io.github.domi04151309.alwayson.charging.Flash
 import io.github.domi04151309.alwayson.charging.IOS
 import io.github.domi04151309.alwayson.helpers.Rules
 import io.github.domi04151309.alwayson.objects.Global
+import java.util.*
 
 class CombinedServiceReceiver : BroadcastReceiver() {
 
@@ -61,20 +66,25 @@ class CombinedServiceReceiver : BroadcastReceiver() {
                 }
             }
             Intent.ACTION_SCREEN_OFF -> {
-                isScreenOn = false
-                val alwaysOn = prefs.getBoolean("always_on", false)
-                if (alwaysOn && !hasRequestedStop) {
-                    if (isAlwaysOnRunning) {
-                        c.startActivity(Intent(c, TurnOnScreen::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        isAlwaysOnRunning = false
-                    } else if (rules.matchesChargingState() && rules.matchesBatteryPercentage() && rules.isInTimePeriod()) {
-                        c.startActivity(Intent(c, AlwaysOn::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                /*Timer().schedule(object : TimerTask() {
+                    override fun run() {*/
+                        isScreenOn = false
+                        //Log.i("allway","screenoff")
+                        val alwaysOn = prefs.getBoolean("always_on", false)
+                        if (alwaysOn && !hasRequestedStop) {
+                            if (isAlwaysOnRunning) {
+                                c.startActivity(Intent(c, TurnOnScreen::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                isAlwaysOnRunning = false
+                            } else if (rules.matchesChargingState() && rules.matchesBatteryPercentage() && rules.isInTimePeriod()) {
+                                c.startActivity(Intent(c, AlwaysOn::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                        } else if (alwaysOn && hasRequestedStop) {
+                            hasRequestedStop = false
+                            isAlwaysOnRunning = false
+                        }
                     }
-                } else if (alwaysOn && hasRequestedStop) {
-                    hasRequestedStop = false
-                    isAlwaysOnRunning = false
-                }
-            }
+               /* }, 2000)
+            }*/
             Intent.ACTION_SCREEN_ON -> {
                 isScreenOn = true
             }

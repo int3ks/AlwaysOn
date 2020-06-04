@@ -20,9 +20,9 @@
         android:summaryOn="@string/pref_enabled"
         android:title="@string/pref_ao_showDate" />
     <SwitchPreference
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:icon="@drawable/ic_battery"
-        android:key="ao_batteryIcn"
+        android:key="d"
         android:summaryOff="@string/pref_disabled"
         android:summaryOn="@string/pref_enabled"
         android:title="@string/pref_ao_showBatteryIcn" />
@@ -34,12 +34,12 @@
         android:summaryOn="@string/pref_enabled"
         android:title="@string/pref_ao_showBattery" />
     <SwitchPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:icon="@drawable/ic_notification"
-        android:key="ao_notifications"
+        android:key="ao_mediainformation"
         android:summaryOff="@string/pref_disabled"
         android:summaryOn="@string/pref_enabled"
-        android:title="@string/pref_ao_showNotifications" />
+        android:title="@string/pref_ao_showMediainformations" />
     <SwitchPreference
         android:defaultValue="true"
         android:icon="@drawable/ic_notification"

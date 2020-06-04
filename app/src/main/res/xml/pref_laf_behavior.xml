@@ -26,7 +26,7 @@
         android:summary="@string/pref_ao_force_brightness_summary"
         android:title="@string/pref_ao_force_brightness" />
     <SwitchPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:icon="@drawable/ic_touch_app"
         android:key="ao_double_tap_disabled"
         android:summary="@string/pref_ao_double_tap_disabled_summary"

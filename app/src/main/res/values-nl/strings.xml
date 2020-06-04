@@ -24,7 +24,7 @@
     <string name="setup_continue">Afronden</string>
     <string name="setup_error">Er is iets misgegaan! Probeer het opnieuw.</string>
 
-    <string name="app_by">AlwaysOn, gemaakt door @Domi04151309</string>
+    <string name="app_by">AlwaysOn, gemaakt door @Domi04151309 (Oneplus8Mod)</string>
     <string name="description">AlwaysOn is een app voor elk apparaat met een AMOLED- of OLED-scherm. De app zorgt er voor dat je scherm aan blijft, en toont een klok en het accupercentage, maar slurpt geen energie.
 Daarnaast toont het een pictogram bij het inpluggen van je koptelefoon en het opladen.
 Je kunt het altijdaan-scherm naar eigen inzicht aanpassen met tegels en widgets.</string>
@@ -78,7 +78,7 @@ Je kunt het altijdaan-scherm naar eigen inzicht aanpassen met tegels en widgets.
     <string name="pref_ao_showDate">Datum tonen</string>
     <string name="pref_ao_showBatteryIcn">Accupictogram tonen</string>
     <string name="pref_ao_showBattery">Accupercentage tonen</string>
-    <string name="pref_ao_showNotifications">Aantal meldingen tonen</string>
+
     <string name="pref_ao_showNotificationIcons">Meldingspictogrammen tonen</string>
     <string name="pref_ao_background">Achtergrond</string>
     <string name="pref_ao_edgeGlow">Randen oplichten</string>
@@ -101,7 +101,7 @@ Je kunt het altijdaan-scherm naar eigen inzicht aanpassen met tegels en widgets.
     <string name="pref_ao_power_saving">Energiebesparingsmodus (root)</string>
     <string name="pref_ao_power_saving_summary">Bespaart energie zolang het altijdaan-scherm wordt getoond</string>
     <string name="pref_ao_double_tap_disabled">Dubbelklik uitschakelen</string>
-    <string name="pref_ao_double_tap_disabled_summary">Schakelt dubbeltikken uit om Always On Display te sluiten (niet aanbevolen)</string>
+    <string name="pref_ao_double_tap_disabled_summary">Schakelt dubbeltikken uit om Always On Display te sluiten</string>
 
     <string name="pref_look_and_feel_charging">Oplaadanimatiestijl</string>
     <string name="pref_look_and_feel_charging_summary">Pas de stijl aan van de oplaadanimatie</string>

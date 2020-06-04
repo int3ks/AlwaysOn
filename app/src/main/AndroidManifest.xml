@@ -79,7 +79,9 @@
         </activity>
         <activity
             android:name=".SetupActivity"
-            android:theme="@style/SetupTheme" />
+            android:theme="@style/SetupTheme" >
+
+        </activity>
 
         <receiver
             android:name=".receivers.AdminReceiver"
@@ -110,6 +112,8 @@
             android:name=".alwayson.AlwaysOnQS"
             android:icon="@drawable/ic_always_on_white"
             android:label="@string/AlwaysOn"
+
+            android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
@@ -156,7 +160,27 @@
 
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTop" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
+        <service
+            android:label="AllwaysOn Display Off"
+            android:name=".services.MyAccessibility"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibilityservice"/>
+        </service>
 
         <service
             android:name=".services.ForegroundService"
@@ -180,6 +204,9 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.domi04151309.alwayson.MainActivity" />
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES"/>
+            </intent-filter>
         </activity>
         <activity
             android:name=".preferences.LookAndFeelPreferences"
@@ -200,19 +227,7 @@
                 android:value="io.github.domi04151309.alwayson.preferences.Preferences" />
         </activity>
 
-        <activity
-            android:name=".SplashActivity"
-            android:theme="@style/AppTheme.Splash">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
-        </activity>
         <activity
             android:name=".charging.IOS"
             android:configChanges="orientation|screenSize"

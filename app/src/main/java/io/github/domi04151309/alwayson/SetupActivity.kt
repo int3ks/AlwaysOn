@@ -15,7 +15,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
 import io.github.domi04151309.alwayson.objects.Root
-import io.github.domi04151309.alwayson.receivers.AdminReceiver
+import io.github.domi04151309.alwayson.services.MyAccessibility
+
 import io.github.domi04151309.alwayson.setup.*
 
 class SetupActivity : AppCompatActivity() {
@@ -52,7 +53,7 @@ class SetupActivity : AppCompatActivity() {
                         if (isDeviceAdmin) {
                             swapContentFragment(NotificationListenerFragment(), NOTIFICATION_LISTENER_FRAGMENT)
                         } else {
-                            startActivity(Intent().setComponent( ComponentName("com.android.settings", "com.android.settings.Settings\$DeviceAdminSettingsActivity")))
+                            startActivity(Intent().setComponent(ComponentName("com.android.settings", "com.android.settings.Settings\$DeviceAdminSettingsActivity")))
                             isActionRequired = true
                         }
                     }
@@ -86,14 +87,14 @@ class SetupActivity : AppCompatActivity() {
         if (isActionRequired) {
             when (currentFragment) {
                 MODE_FRAGMENT -> {
-                    if(!rootMode && !isDeviceAdmin) {
+                    if (!rootMode && !isDeviceAdmin) {
                         Toast.makeText(this, R.string.setup_error, Toast.LENGTH_LONG).show()
                     } else {
                         swapContentFragment(NotificationListenerFragment(), NOTIFICATION_LISTENER_FRAGMENT)
                     }
                 }
                 NOTIFICATION_LISTENER_FRAGMENT -> {
-                    if(!isNotificationServiceEnabled) {
+                    if (!isNotificationServiceEnabled) {
                         Toast.makeText(this, R.string.setup_error, Toast.LENGTH_LONG).show()
                     } else {
                         swapContentFragment(DrawOverOtherAppsFragment(), DRAW_OVER_OTHER_APPS_FRAGMENT)
@@ -119,10 +120,10 @@ class SetupActivity : AppCompatActivity() {
     private fun swapContentFragment(fragment: Fragment, id: Int) {
         currentFragment = id
         supportFragmentManager.beginTransaction()
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .replace(R.id.content, fragment, null)
-            .addToBackStack(null)
-            .commitAllowingStateLoss()
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .replace(R.id.content, fragment, null)
+                .addToBackStack(null)
+                .commitAllowingStateLoss()
     }
 
     private val isNotificationServiceEnabled: Boolean
@@ -145,9 +146,9 @@ class SetupActivity : AppCompatActivity() {
 
     private val isDeviceAdmin: Boolean
         get() {
-            val policyManager = this
-                    .getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-            return policyManager.isAdminActive(ComponentName(this, AdminReceiver::class.java))
+            return MyAccessibility.isAccessibilitySettingsOn(this)
+           /* val policyManager = this.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            return policyManager.isAdminActive(ComponentName(this, AdminReceiver::class.java))*/
         }
 
     companion object {

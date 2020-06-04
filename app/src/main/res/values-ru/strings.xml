@@ -24,7 +24,7 @@
     <string name="setup_continue">Продолжить</string>
     <string name="setup_error">Что-то пошло не так! Пожалуйста, попробуйте еще раз!</string>
 
-    <string name="app_by">AlwaysOn создано Domi04151309</string>
+    <string name="app_by">AlwaysOn создано Domi04151309 (Oneplus8Mod)</string>
     <string name="description">AlwaysOn - это приложение для устройств с AMOLED и OLED дисплеями. Приложение включает Always On Dispaly, отображает время и процент заряда батареи, но не разряжает батарею.
 Кроме того, значки появляются, когда вы подключаете наушники или начинаете зарядку устройства.
 Вы можете настроить свой Always On Display и включать или выключать его с помощью панели быстрых настроек и виджетов.</string>
@@ -78,7 +78,7 @@
     <string name="pref_ao_showDate">Показывать дату</string>
     <string name="pref_ao_showBatteryIcn">Показывать иконку батареи</string>
     <string name="pref_ao_showBattery">Показывать заряд батареи</string>
-    <string name="pref_ao_showNotifications">Показывать счетчик уведомлений</string>
+
     <string name="pref_ao_showNotificationIcons">Показывать иконки уведомлений</string>
     <string name="pref_ao_background">Задний фон</string>
     <string name="pref_ao_edgeGlow">Подсветка краёв экрана</string>
@@ -101,7 +101,7 @@
     <string name="pref_ao_power_saving">Режим энергосбережения (root)</string>
     <string name="pref_ao_power_saving_summary">Экономит заряд, когда работает AOD</string>
     <string name="pref_ao_double_tap_disabled">Отключить пробуждение по двойному нажатию</string>
-    <string name="pref_ao_double_tap_disabled_summary">Отключает пробуждение по двойному нажатию для выхода из AOD (не рекомендуется)</string>
+    <string name="pref_ao_double_tap_disabled_summary">Отключает пробуждение по двойному нажатию для выхода из AOD</string>
 
     <string name="pref_look_and_feel_charging">Вид анимации зарядки</string>
     <string name="pref_look_and_feel_charging_summary">Изменяет внешний вид анимации зарядки</string>
