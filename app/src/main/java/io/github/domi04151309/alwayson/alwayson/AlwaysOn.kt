@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.domi04151309.alwayson.OffActivity
 import io.github.domi04151309.alwayson.R
 import io.github.domi04151309.alwayson.adapters.NotificationGridAdapter
+
 import io.github.domi04151309.alwayson.helpers.Rules
 import io.github.domi04151309.alwayson.objects.Global
 import io.github.domi04151309.alwayson.objects.Root
@@ -66,8 +67,32 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     //Media
     override fun onActiveSessionsChanged(controllers: MutableList<MediaController>?) {
         mediaCtl = controllers?.firstOrNull()
-        mediaCtl?.let { it.registerCallback(sessionCallback) }
-        sessionCallback.onMetadataChanged(mediaCtl?.metadata)
+
+        mediaCtl?.let {
+
+            //Log.i("allwayson", it.packageName)
+            it.registerCallback(sessionCallback)
+            mediaInfo!!.visibility = View.VISIBLE
+            checkMediaAndState()
+        } ?: run {
+            mediaInfo!!.visibility = View.GONE
+        }
+
+    }
+
+    fun checkMediaAndState() {
+
+        mediaCtl?.metadata?.let { meta ->
+            meta?.getString(MediaMetadata.METADATA_KEY_TITLE).let {
+                mediatext = it
+                meta?.getString(MediaMetadata.METADATA_KEY_ARTIST).let { mediatext += (" - " + it) }
+            }
+            mediaInfoTxt?.text = mediatext
+
+            var appIcon = packageManager.getApplicationIcon(mediaCtl?.packageName)
+            mediainfoIco?.setImageDrawable(appIcon)
+
+        }
     }
 
     var sessionCallback: MediaController.Callback = object : MediaController.Callback() {
@@ -75,24 +100,12 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
             super.onPlaybackStateChanged(state)
             checkMediaAndState()
         }
+
         override fun onMetadataChanged(metadata: MediaMetadata?) {
             super.onMetadataChanged(metadata)
             checkMediaAndState()
         }
-        fun checkMediaAndState() {
-            if (mediaCtl?.playbackState?.state == PlaybackState.STATE_PLAYING) {
-                mediaInfoTxt?.animate()?.alpha(1f)?.duration = 1000
-            } else {
-                mediaInfoTxt?.animate()?.alpha(0.5f)?.duration = 1000
-            }
-            mediaCtl?.metadata?.let { meta ->
-                meta?.getString(MediaMetadata.METADATA_KEY_TITLE).let {
-                    mediatext = ("\uD83C\uDFB6" + it)
-                    meta?.getString(MediaMetadata.METADATA_KEY_ARTIST).let { mediatext += it }
-                }
-                mediaInfoTxt?.text = mediatext
-            }
-        }
+
     }
 
     //Threads
@@ -189,7 +202,9 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     //Notifications
     private var transition: TransitionDrawable? = null
     private var notificationAvailable: Boolean = false
+    private var mediaInfo: View? = null
     private var mediaInfoTxt: TextView? = null
+    private var mediainfoIco: ImageView? = null
     private var notificationGrid: RecyclerView? = null
     private val mNotificationReceiver = object : BroadcastReceiver() {
 
@@ -198,6 +213,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
             if (aoNotificationIcons) {
                 val itemArray: ArrayList<Icon> = intent.getParcelableArrayListExtra("icons")
                         ?: arrayListOf()
+                itemArray.removeIf { it.resPackage.equals(mediaCtl?.packageName) }
                 notificationGrid!!.adapter = NotificationGridAdapter(itemArray)
             }
 
@@ -274,7 +290,9 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         dateTxt = findViewById(R.id.dateTxt)
         batteryIcn = findViewById(R.id.batteryIcn)
         batteryTxt = findViewById(R.id.batteryTxt)
-        mediaInfoTxt = findViewById(R.id.notifications)
+        mediaInfo = findViewById(R.id.mediainfo)
+        mediaInfoTxt = findViewById(R.id.musicinfotxt)
+        mediainfoIco = findViewById(R.id.musicicon)
         notificationGrid = findViewById(R.id.notifications_grid)
 
         if (!aoClock) clockTxt!!.visibility = View.GONE
@@ -362,7 +380,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         if (aoPocketMode) {
             mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
             mProximity = mSensorManager!!.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-            mSensorManager!!.registerListener(this, mProximity, SENSOR_DELAY_SLOW, SENSOR_DELAY_SLOW)
+            mSensorManager!!.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
         }
 
 //DND
@@ -461,7 +479,7 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             })
         }
 
-        notificationGrid!!.setOnTouchListener(object : View.OnTouchListener {
+       /* notificationGrid!!.setOnTouchListener(object : View.OnTouchListener {
             private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onDoubleTap(e: MotionEvent): Boolean {
@@ -480,10 +498,10 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                 v.performClick()
                 return true
             }
-        })
+        })*/
 
         if (!aoMediaInfoTxt) {
-            mediaInfoTxt!!.visibility = View.GONE
+            mediaInfo!!.visibility = View.GONE
         } else {
             msm = this.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
             comp = ComponentName(this.applicationContext, NotificationService::class.java.name)
@@ -494,18 +512,57 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                 Log.e("mediaControlRouter contructor", e.localizedMessage)
             }
         }
+
+
         mediaInfoTxt!!.setOnTouchListener(object : View.OnTouchListener {
+            var isOn = false
+            var isOncount = 0
             private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
-                @RequiresApi(Build.VERSION_CODES.O)
-                override fun onLongPress(e: MotionEvent?) {
+                private var isOnThread: Thread? = null
+                private val SWIPE_THRESHOLD = 100
+                private val SWIPE_VELOCITY_THRESHOLD = 100
+
+                fun onSwipeRight(): Boolean {
+                    mediaCtl?.let {
+                        it.transportControls.skipToPrevious()
+                    }
+                    return true
+                }
+
+                fun onSwipeLeft(): Boolean {
                     mediaCtl?.let {
                         it.transportControls.skipToNext()
                     }
-                    super.onLongPress(e)
+                    return true
                 }
 
-                @RequiresApi(Build.VERSION_CODES.O)
-                override fun onDoubleTap(e: MotionEvent): Boolean {
+                override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                    var result = false
+                    if (!isOn) {
+                        return result
+                    }
+                    try {
+                        val diffY = e2.y - e1.y
+                        val diffX = e2.x - e1.x
+                        if (Math.abs(diffX) > Math.abs(diffY)) {
+                            if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                                if (diffX > 0) {
+                                    result = onSwipeRight()
+                                } else {
+                                    result = onSwipeLeft()
+                                }
+                            }
+                        }
+                    } catch (exception: java.lang.Exception) {
+                        exception.printStackTrace()
+                    }
+                    return result
+                }
+
+                override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+                    if (!isOn) {
+                        return super.onSingleTapConfirmed(e)
+                    }
                     mediaCtl?.let {
                         if (it.playbackState?.state == PlaybackState.STATE_PLAYING) {
                             it.transportControls.pause()
@@ -513,18 +570,61 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                             it.transportControls.play()
                         }
                     }
+                    return super.onSingleTapConfirmed(e)
+                }
+
+
+                @RequiresApi(Build.VERSION_CODES.O)
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    isOn = !isOn
+                    if (isOn) {
+                        mediaInfo?.animate()?.alpha(1f)?.duration = 1000
+                        isOnThread?.interrupt()
+                        isOnThread = null
+                        isOncount = 4
+                        isOnThread = object : Thread() {
+                            override fun run() {
+                                try {
+                                    while (!isInterrupted) {
+                                        Thread.sleep(1000)
+                                        if (isOncount > 0) {
+                                            isOncount--
+                                        } else {
+                                            isOn = false
+                                            mediaInfo?.animate()?.alpha(0.5f)?.duration = 1000
+                                            return
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e(Global.LOG_TAG, e.toString())
+                                }
+                            }
+                        }
+                        isOnThread?.start()
+                    } else {
+                        mediaInfo?.animate()?.alpha(0.5f)?.duration = 1000
+                        isOnThread?.interrupt()
+                        isOnThread = null
+                    }
                     return super.onDoubleTap(e)
                 }
             })
+
             override fun onTouch(v: View, event: MotionEvent): Boolean {
+                if (isOn) {
+                    isOncount = 4
+                }
                 gestureDetector.onTouchEvent(event)
                 v.performClick()
                 return true
             }
         })
 
+
+
         fingersensor!!.setOnTouchListener(object : View.OnTouchListener {
             private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
+
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onLongPress(e: MotionEvent?) {
                     val duration = prefs.getInt("ao_vibration", 64).toLong()
@@ -552,6 +652,7 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             override fun onTouch(v: View, event: MotionEvent): Boolean {
                 gestureDetector.onTouchEvent(event)
                 v.performClick()
+               // finish();
                 return true
             }
         })

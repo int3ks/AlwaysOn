@@ -64,17 +64,7 @@
                 app:srcCompat="@drawable/ic_battery_unknown" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/notifications"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/aod_spacing"
-            android:fontFamily="@font/samsung_sans"
-            android:includeFontPadding="false"
-            android:text="@string/feature"
-            android:textSize="18sp"
-            android:singleLine="true"
-            />
+        <include layout="@layout/mediainfo" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/notifications_grid"
