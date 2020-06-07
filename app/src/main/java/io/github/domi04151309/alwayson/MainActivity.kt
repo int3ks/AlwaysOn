@@ -2,7 +2,6 @@ package io.github.domi04151309.alwayson
 
 import android.Manifest
 import android.app.Activity
-import android.app.admin.DevicePolicyManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
@@ -24,9 +23,7 @@ import androidx.preference.PreferenceManager
 import io.github.domi04151309.alwayson.objects.Global
 import io.github.domi04151309.alwayson.objects.Root
 import io.github.domi04151309.alwayson.objects.Theme
-import io.github.domi04151309.alwayson.preferences.PermissionPreferences
 import io.github.domi04151309.alwayson.preferences.Preferences
-
 import io.github.domi04151309.alwayson.services.ForegroundService
 import io.github.domi04151309.alwayson.services.MyAccessibility
 import java.util.*
@@ -146,10 +143,15 @@ class MainActivity : Activity() {
     override fun onStart() {
         super.onStart()
 
+
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 42)
+        }
+        Root.WriteSupportBatch(this)
         isDeviceRoot
-        if (!isDeviceAdmin) buildDialog(1)
-        if (!isNotificationServiceEnabled) buildDialog(2)
-        if (!Settings.canDrawOverlays(this)) buildDialog(3)
+        if (!isDeviceAdmin)startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        if (!isNotificationServiceEnabled) startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+        if (!Settings.canDrawOverlays(this))startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
     }
 
     private fun buildDialog(case: Int) {

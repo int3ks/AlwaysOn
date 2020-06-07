@@ -3,6 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('C:\\Users\\tom\\AndroidStudioProjects\\HeadSpark\\maykey')
+            storePassword 'charlie'
+            keyAlias 'inteks'
+            keyPassword 'charlie'
+        }
+    }
     compileSdkVersion 29
     defaultConfig {
         applicationId "io.github.domi04151309.alwayson"
@@ -19,11 +27,13 @@ android {
             applicationIdSuffix '.debug'
             versionNameSuffix ' debug'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
     lintOptions {

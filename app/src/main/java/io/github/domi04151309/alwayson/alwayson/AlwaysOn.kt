@@ -54,11 +54,14 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     }
 
 
+    private var aoDoubleTapDisabled: Boolean = false
+    private var ao_vibration: Long = 0
     private lateinit var comp: ComponentName
     private lateinit var msm: MediaSessionManager
     private var localManager: LocalBroadcastManager? = null
     private var content: View? = null
     private var fingersensor: ImageView? = null
+    private var frame: View? = null
     private var rootMode: Boolean = false
     private var servicesRunning: Boolean = false
     private var screenSize: Float = 0F
@@ -70,7 +73,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
 
         mediaCtl?.let {
 
-            //Log.i("allwayson", it.packageName)
+            //Log.i("alwayson", it.packageName)
             it.registerCallback(sessionCallback)
             mediaInfo!!.visibility = View.VISIBLE
             checkMediaAndState()
@@ -211,8 +214,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         override fun onReceive(c: Context, intent: Intent) {
             val count = intent.getIntExtra("count", 0)
             if (aoNotificationIcons) {
-                val itemArray: ArrayList<Icon> = intent.getParcelableArrayListExtra("icons")
-                        ?: arrayListOf()
+                val itemArray: ArrayList<Icon> = intent.getParcelableArrayListExtra("icons") ?: arrayListOf()
                 itemArray.removeIf { it.resPackage.equals(mediaCtl?.packageName) }
                 notificationGrid!!.adapter = NotificationGridAdapter(itemArray)
             }
@@ -253,7 +255,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
 
 
 //Check prefs
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        var prefs = PreferenceManager.getDefaultSharedPreferences(this)
         rootMode = prefs.getBoolean("root_mode", false)
         powerSaving = prefs.getBoolean("ao_power_saving", false)
         val userTheme = prefs.getString("ao_style", "google")
@@ -270,8 +272,8 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         val clock = prefs.getBoolean("hour", false)
         val amPm = prefs.getBoolean("am_pm", false)
         val aoForceBrightness = prefs.getBoolean("ao_force_brightness", false)
-        val aoDoubleTapDisabled = prefs.getBoolean("ao_double_tap_disabled", true)
-
+        ao_vibration = prefs.getInt("ao_vibration", 64).toLong()
+        aoDoubleTapDisabled = prefs.getBoolean("ao_double_tap_disabled", true)
 //Cutouts
         if (prefs.getBoolean("hide_display_cutouts", false))
             setTheme(R.style.CutoutHide)
@@ -333,7 +335,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
 
 //Variables
         localManager = LocalBroadcastManager.getInstance(this)
-        val frame = findViewById<View>(R.id.frame)
+        frame = findViewById<View>(R.id.frame)
         content = findViewById(R.id.fullscreen_content)
         fingersensor = findViewById(R.id.fingersensor)
 
@@ -380,7 +382,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         if (aoPocketMode) {
             mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
             mProximity = mSensorManager!!.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-            mSensorManager!!.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
+            mSensorManager!!.registerListener(this, mProximity, SENSOR_DELAY_SLOW, SENSOR_DELAY_SLOW)
         }
 
 //DND
@@ -394,11 +396,11 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         if (aoEdgeGlow) {
             val transitionTime = prefs.getInt("ao_glowDuration", 2000)
             if (transitionTime >= 100) {
-                frame.background = when (prefs.getString("ao_glowStyle", "all")) {
+                frame!!.background = when (prefs.getString("ao_glowStyle", "all")) {
                     "horizontal" -> ContextCompat.getDrawable(this, R.drawable.edge_glow_horizontal)
                     else -> ContextCompat.getDrawable(this, R.drawable.edge_glow)
                 }
-                transition = frame.background as TransitionDrawable
+                transition = frame!!.background as TransitionDrawable
                 aoEdgeGlowThread = object : Thread() {
                     override fun run() {
                         try {
@@ -420,11 +422,8 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
             }
         }
 
-// Power saving mode
-        if (rootMode && powerSaving) {
-            Root.shell("settings put global low_power 1")
-            Root.shell("dumpsys deviceidle force-idle")
-        }
+
+
 
 //Animation
         val animationDuration = 10000L
@@ -452,54 +451,6 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         }
         animationThread.start()
 
-//DoubleTap
-        if (!aoDoubleTapDisabled) {
-            frame.setOnTouchListener(object : View.OnTouchListener {
-                private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
-                    override fun onDoubleTap(e: MotionEvent): Boolean {
-                        val duration = prefs.getInt("ao_vibration", 64).toLong()
-                        if (duration > 0) {
-                            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
-                            } else {
-                                vibrator.vibrate(duration)
-                            }
-                        }
-                        finish()
-                        return super.onDoubleTap(e)
-                    }
-                })
-
-                override fun onTouch(v: View, event: MotionEvent): Boolean {
-                    gestureDetector.onTouchEvent(event)
-                    v.performClick()
-                    return true
-                }
-            })
-        }
-
-       /* notificationGrid!!.setOnTouchListener(object : View.OnTouchListener {
-            private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
-                @RequiresApi(Build.VERSION_CODES.O)
-                override fun onDoubleTap(e: MotionEvent): Boolean {
-                    val duration = prefs.getInt("ao_vibration", 64).toLong()
-                    if (duration > 0) {
-                        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                        vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
-                    finish()
-                    return super.onDoubleTap(e)
-                }
-            })
-
-            override fun onTouch(v: View, event: MotionEvent): Boolean {
-                gestureDetector.onTouchEvent(event)
-                v.performClick()
-                return true
-            }
-        })*/
-
         if (!aoMediaInfoTxt) {
             mediaInfo!!.visibility = View.GONE
         } else {
@@ -513,6 +464,58 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             }
         }
 
+
+//Stop
+        localManager!!.registerReceiver(mStopReceiver, IntentFilter(Global.REQUEST_STOP))
+
+//Rules
+        rulesChargingState = prefs.getString("rules_charging_state", "always") ?: "always"
+        rulesBattery = prefs.getInt("rules_battery_level", 0)
+
+        if (Rules(this, prefs).millisTillEnd() >= 0) {
+            Handler().postDelayed({
+                stopAndOff()
+            }, Rules(this, prefs).millisTillEnd())
+        }
+
+        val rulesTimeout = prefs.getInt("rules_timeout", 0)
+        if (rulesTimeout != 0) {
+            Handler().postDelayed({
+                stopAndOff()
+            }, rulesTimeout * 60000L)
+        }
+    }
+
+    private fun setTouchlistener(enabled: Boolean) {
+
+        if (!enabled) {
+            mediaInfoTxt!!.setOnTouchListener(null)
+            frame!!.setOnTouchListener(null)
+            fingersensor!!.setOnTouchListener(null)
+            return
+        }
+
+        //DoubleTap
+        if (!aoDoubleTapDisabled) {
+            frame!!.setOnTouchListener(object : View.OnTouchListener {
+                private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onDoubleTap(e: MotionEvent): Boolean {
+                        if (ao_vibration > 0) {
+                            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                            vibrator.vibrate(ao_vibration)
+                        }
+                        finish()
+                        return super.onDoubleTap(e)
+                    }
+                })
+
+                override fun onTouch(v: View, event: MotionEvent): Boolean {
+                    gestureDetector.onTouchEvent(event)
+                    v.performClick()
+                    return true
+                }
+            })
+        }
 
         mediaInfoTxt!!.setOnTouchListener(object : View.OnTouchListener {
             var isOn = false
@@ -573,7 +576,6 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                     return super.onSingleTapConfirmed(e)
                 }
 
-
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onDoubleTap(e: MotionEvent): Boolean {
                     isOn = !isOn
@@ -586,12 +588,14 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                             override fun run() {
                                 try {
                                     while (!isInterrupted) {
-                                        Thread.sleep(1000)
+                                        sleep(1000)
                                         if (isOncount > 0) {
                                             isOncount--
                                         } else {
                                             isOn = false
                                             mediaInfo?.animate()?.alpha(0.5f)?.duration = 1000
+                                            isOnThread?.interrupt()
+                                            isOnThread = null
                                             return
                                         }
                                     }
@@ -620,29 +624,23 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             }
         })
 
-
-
         fingersensor!!.setOnTouchListener(object : View.OnTouchListener {
             private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
-
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onLongPress(e: MotionEvent?) {
-                    val duration = prefs.getInt("ao_vibration", 64).toLong()
-                    if (duration > 0) {
+                    if (ao_vibration > 0) {
                         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                        vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(VibrationEffect.createOneShot(ao_vibration, VibrationEffect.DEFAULT_AMPLITUDE))
                     }
-
                     finish();
                     super.onLongPress(e)
                 }
 
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onDoubleTap(e: MotionEvent): Boolean {
-                    val duration = prefs.getInt("ao_vibration", 64).toLong()
-                    if (duration > 0) {
+                    if (ao_vibration > 0) {
                         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                        vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
+                        vibrator.vibrate(VibrationEffect.createOneShot(ao_vibration, VibrationEffect.DEFAULT_AMPLITUDE))
                     }
                     finish()
                     return super.onDoubleTap(e)
@@ -652,35 +650,14 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             override fun onTouch(v: View, event: MotionEvent): Boolean {
                 gestureDetector.onTouchEvent(event)
                 v.performClick()
-               // finish();
+                // finish();
                 return true
             }
         })
-
-
-//Stop
-        localManager!!.registerReceiver(mStopReceiver, IntentFilter(Global.REQUEST_STOP))
-
-//Rules
-        rulesChargingState = prefs.getString("rules_charging_state", "always") ?: "always"
-        rulesBattery = prefs.getInt("rules_battery_level", 0)
-
-        if (Rules(this, prefs).millisTillEnd() >= 0) {
-            Handler().postDelayed({
-                stopAndOff()
-            }, Rules(this, prefs).millisTillEnd())
-        }
-
-        val rulesTimeout = prefs.getInt("rules_timeout", 0)
-        if (rulesTimeout != 0) {
-            Handler().postDelayed({
-                stopAndOff()
-            }, rulesTimeout * 60000L)
-        }
     }
 
     fun animateContent(animationDuration: Long) {
-        Log.i("allway", "fingersensortop:" + fingersensorTopPositionRange + "/contenttop:" + contentTopPositionRange)
+        Log.i("always", "fingersensortop:" + fingersensorTopPositionRange + "/contenttop:" + contentTopPositionRange)
         fingersensor!!.animate().translationY(fingersensorTopPositionRange).duration = animationDuration
         content!!.animate().translationY(contentTopPositionRange).duration = animationDuration
     }
@@ -704,9 +681,11 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         if (p0!!.sensor.type == Sensor.TYPE_PROXIMITY) {
             if (p0.values[0] == p0.sensor.maximumRange) {
                 content!!.animate().alpha(1F).duration = 1000L
+                fingersensor!!.animate().alpha(1f).duration = 1000L
                 startServices()
             } else {
                 content!!.animate().alpha(0F).duration = 1000L
+                fingersensor!!.animate().alpha(0F).duration = 1000L
                 stopServices()
             }
         }
@@ -726,15 +705,55 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
 //Global.lastPowerKeyPressed=null
         startServices()
         if (aoDND && notificationAccess) mNotificationManager!!.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
-        if (aoHeadsUp) Root.shell("settings put global heads_up_notifications_enabled 0")
+        if (aoHeadsUp) {
+            if (rootMode) {
+                Root.shell("settings put global heads_up_notifications_enabled 0")
+            } else {
+                try {
+                    Settings.Global.putInt(this.contentResolver, "heads_up_notifications_enabled", 0)
+                } catch (e: java.lang.Exception) {
+                }
+            }
+        }
+        // Power saving mode
+        if (powerSaving) {
+            if (rootMode) {
+                Root.shell("settings put global low_power 1")
+                Root.shell("dumpsys deviceidle force-idle")
+            } else {
+                try {
+                    Settings.Global.putInt(this.contentResolver, "low_power", 1)
+                } catch (e: java.lang.Exception) {
+                }
+            }
+        }
     }
 
     override fun onStop() {
         super.onStop()
         stopServices()
         if (aoDND && notificationAccess) mNotificationManager!!.setInterruptionFilter(userDND)
-        if (rootMode && powerSaving && !userPowerSaving) Root.shell("settings put global low_power 0")
-        if (aoHeadsUp) Root.shell("settings put global heads_up_notifications_enabled 1")
+        if (powerSaving && !userPowerSaving) {
+            if (rootMode) {
+                Root.shell("settings put global low_power 0")
+            } else {
+                try {
+                    Settings.Global.putInt(this.contentResolver, "low_power", 0)
+                } catch (e: java.lang.Exception) {
+                }
+            }
+        }
+        if (aoHeadsUp) {
+
+            if (rootMode) {
+                Root.shell("settings put global heads_up_notifications_enabled 1")
+            } else {
+                try {
+                    Settings.Global.putInt(this.contentResolver, "heads_up_notifications_enabled", 1)
+                } catch (e: java.lang.Exception) {
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -777,6 +796,8 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         if (!servicesRunning) {
             servicesRunning = true
 
+            setTouchlistener(true)
+
 // Clock Handler
             if (aoClock) clockHandler.postDelayed(clockRunnable, CLOCK_DELAY)
 
@@ -797,6 +818,8 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
     private fun stopServices() {
         if (servicesRunning) {
             servicesRunning = false
+
+            setTouchlistener(false)
 
 // Clock Handler
             if (aoClock) clockHandler.removeCallbacksAndMessages(null)

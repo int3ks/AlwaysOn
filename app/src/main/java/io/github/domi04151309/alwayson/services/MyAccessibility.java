@@ -32,6 +32,7 @@ public class MyAccessibility extends AccessibilityService {
                 return;
             }
             String packages = event.getPackageName().toString();
+
             if (packages.contains("com.oneplus.camera")) {
                 LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Global.REQUEST_STOP));
             }
@@ -57,7 +58,7 @@ public class MyAccessibility extends AccessibilityService {
 
 
 
-    static String TAG = "AllwaysOn";
+    static String TAG = "AlwaysOn";
 
     // To check if service is enabled
     public static boolean isAccessibilitySettingsOn(Context mContext) {

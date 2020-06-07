@@ -76,6 +76,9 @@ class NotificationService : NotificationListenerService() {
                             }
                         }
                     }
+                    if(notification.packageName.toLowerCase().contains("torque")){
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(Global.REQUEST_STOP))
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(Global.LOG_TAG, e.toString())

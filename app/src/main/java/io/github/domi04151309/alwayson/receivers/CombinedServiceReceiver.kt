@@ -69,7 +69,7 @@ class CombinedServiceReceiver : BroadcastReceiver() {
                 /*Timer().schedule(object : TimerTask() {
                     override fun run() {*/
                         isScreenOn = false
-                        //Log.i("allway","screenoff")
+                        //Log.i("alway","screenoff")
                         val alwaysOn = prefs.getBoolean("always_on", false)
                         if (alwaysOn && !hasRequestedStop) {
                             if (isAlwaysOnRunning) {
