@@ -6,6 +6,7 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.icu.util.Calendar
 import android.os.BatteryManager
+import android.os.Debug
 
 class Rules(private val c: Context, private val prefs: SharedPreferences) {
 
@@ -33,6 +34,10 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
     }
 
     fun matchesChargingState(): Boolean {
+        if(Debug.isDebuggerConnected()){
+            return true
+        }
+
         val chargingState: Int = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
         val ruleChargingState = prefs.getString("rules_charging_state", "always")
         return (ruleChargingState == "charging" && chargingState > 0) || (ruleChargingState == "discharging" && chargingState == 0) || (ruleChargingState == "always")
