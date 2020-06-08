@@ -13,8 +13,10 @@ class PhoneStateReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if(intent.action == "android.intent.action.PHONE_STATE") {
             try {
-                if (intent.getStringExtra(TelephonyManager.EXTRA_STATE) == TelephonyManager.EXTRA_STATE_RINGING) {
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(Global.REQUEST_STOP))
+                intent.getStringExtra(TelephonyManager.EXTRA_STATE)?.let {
+                    if (it == TelephonyManager.EXTRA_STATE_RINGING || it == TelephonyManager.EXTRA_STATE_OFFHOOK) {
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(Global.REQUEST_STOP))
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(Global.LOG_TAG, e.toString())

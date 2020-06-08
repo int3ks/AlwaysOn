@@ -24,13 +24,14 @@ class AlwaysOnQS : TileService() {
     }
 
     fun updateTile(isActive: Boolean) {
-        val tile = qsTile
-        val newState: Int = if (isActive) {
-            Tile.STATE_ACTIVE
-        } else {
-            Tile.STATE_INACTIVE
+        qsTile?.let {
+            val newState: Int = if (isActive) {
+                Tile.STATE_ACTIVE
+            } else {
+                Tile.STATE_INACTIVE
+            }
+            it.state = newState
+            it.updateTile()
         }
-        tile.state = newState
-        tile.updateTile()
     }
 }
