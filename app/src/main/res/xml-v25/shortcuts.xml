@@ -12,19 +12,7 @@
             android:targetClass="io.github.domi04151309.alwayson.preferences.LookAndFeelPreferences" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
-    <shortcut
-        android:shortcutId="permissions"
-        android:enabled="true"
-        android:icon="@mipmap/ic_shortcut"
-        android:shortcutShortLabel="@string/pref_permissions"
-        android:shortcutLongLabel="@string/pref_permissions"
-        android:shortcutDisabledMessage="@string/shortcut_disabled">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetPackage="io.github.domi04151309.alwayson"
-            android:targetClass="io.github.domi04151309.alwayson.preferences.PermissionPreferences" />
-        <categories android:name="android.shortcut.conversation" />
-    </shortcut>
+
     <shortcut
         android:shortcutId="about"
         android:enabled="true"

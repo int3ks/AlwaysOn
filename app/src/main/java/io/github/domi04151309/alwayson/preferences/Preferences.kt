@@ -51,10 +51,7 @@ class Preferences : AppCompatActivity(),
                 startActivity(Intent(context, LookAndFeelPreferences::class.java))
                 true
             }
-            findPreference<Preference>("pref_permissions")!!.setOnPreferenceClickListener {
-                startActivity(Intent(context, PermissionPreferences::class.java))
-                true
-            }
+
             findPreference<Preference>("pref_about")!!.setOnPreferenceClickListener {
                 startActivity(Intent(context, AboutActivity::class.java))
                 true

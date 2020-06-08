@@ -37,8 +37,7 @@ class LAFBackgroundPreferences : AppCompatActivity(),
     class PreferenceFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             addPreferencesFromResource(R.xml.pref_laf_background)
-            if (Build.VERSION.SDK_INT < 28)
-                preferenceScreen.removePreference(findPreference("hide_display_cutouts"))
+
         }
     }
 }

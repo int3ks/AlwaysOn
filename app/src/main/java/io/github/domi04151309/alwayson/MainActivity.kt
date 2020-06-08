@@ -154,7 +154,7 @@ class MainActivity : Activity() {
         if (!Settings.canDrawOverlays(this))startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
     }
 
-    private fun buildDialog(case: Int) {
+   /* private fun buildDialog(case: Int) {
         val builder = AlertDialog.Builder(ContextThemeWrapper(this, R.style.DialogTheme))
 
         when (case) {
@@ -192,7 +192,7 @@ class MainActivity : Activity() {
         builder.setNegativeButton(resources.getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
 
         builder.show()
-    }
+    }*/
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {

@@ -6,9 +6,13 @@ import android.app.Service
 import android.content.ComponentName
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.audiofx.BassBoost
+import android.media.audiofx.Equalizer
 import android.os.Build
 import android.os.IBinder
+
 import android.service.quicksettings.TileService
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import io.github.domi04151309.alwayson.R
 import io.github.domi04151309.alwayson.alwayson.AlwaysOnQS
@@ -40,6 +44,7 @@ class ForegroundService : Service() {
                 .setContentText(resources.getString(R.string.service_text))
                 .setSmallIcon(R.drawable.ic_always_on_white)
                 .setShowWhen(false)
+
                 .build()
         startForeground(1, notification)
         return START_REDELIVER_INTENT

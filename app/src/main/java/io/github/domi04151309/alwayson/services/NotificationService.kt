@@ -8,6 +8,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
+import io.github.domi04151309.alwayson.alwayson.AlwaysOn
 import io.github.domi04151309.alwayson.objects.Global
 import io.github.domi04151309.alwayson.objects.JSON
 import org.json.JSONArray
@@ -65,6 +66,13 @@ class NotificationService : NotificationListenerService() {
             try {
                 val notifications = activeNotifications
                 for (notification in notifications) {
+
+                    AlwaysOn?.mediaIcons?.let {
+                        if(it.get(notification.packageName)==null){
+                            it.put(notification.packageName,notification.notification.smallIcon)
+                        }
+                    }
+
                     if (!notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
                         count++
                         if (!apps.contains(notification.packageName)) {
@@ -76,6 +84,7 @@ class NotificationService : NotificationListenerService() {
                             }
                         }
                     }
+
                     if(notification.packageName.toLowerCase().contains("torque")){
                         LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(Global.REQUEST_STOP))
                     }

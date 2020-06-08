@@ -41,8 +41,10 @@ import io.github.domi04151309.alwayson.objects.Global
 import io.github.domi04151309.alwayson.objects.Root
 import io.github.domi04151309.alwayson.receivers.CombinedServiceReceiver
 import io.github.domi04151309.alwayson.services.NotificationService
+import kotlinx.android.synthetic.main.mediainfo.*
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
+import kotlin.collections.HashMap
 
 
 class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiveSessionsChangedListener {
@@ -51,6 +53,8 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         private const val CLOCK_DELAY: Long = 60000
         private const val SENSOR_DELAY_SLOW: Int = 1000000
         var mediatext: String = ""
+        public var mediaIcons: HashMap<String, Icon> = HashMap()
+
     }
 
 
@@ -70,45 +74,48 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     //Media
     override fun onActiveSessionsChanged(controllers: MutableList<MediaController>?) {
         mediaCtl = controllers?.firstOrNull()
-
         mediaCtl?.let {
-
-            //Log.i("alwayson", it.packageName)
             it.registerCallback(sessionCallback)
-            mediaInfo!!.visibility = View.VISIBLE
-            checkMediaAndState()
-        } ?: run {
-            mediaInfo!!.visibility = View.GONE
         }
-
+        checkMediaInfoVisibility()
     }
 
-    fun checkMediaAndState() {
-
-        mediaCtl?.metadata?.let { meta ->
-            meta?.getString(MediaMetadata.METADATA_KEY_TITLE).let {
-                mediatext = it
-                meta?.getString(MediaMetadata.METADATA_KEY_ARTIST).let { mediatext += (" - " + it) }
-            }
-            mediaInfoTxt?.text = mediatext
-
-            var appIcon = packageManager.getApplicationIcon(mediaCtl?.packageName)
-            mediainfoIco?.setImageDrawable(appIcon)
-
+    fun checkMediaInfoVisibility() {
+        if (mediaCtl == null) {
+            mediaInfo!!.visibility = View.GONE
+            return
         }
+        mediaCtl?.metadata?.let { meta ->
+            meta?.getString(MediaMetadata.METADATA_KEY_TITLE)?.let {
+                mediatext = it
+                meta?.getString(MediaMetadata.METADATA_KEY_ARTIST)?.let { mediatext += (" - " + it) }
+            }
+        }
+
+        if (mediatext == null || mediatext.isEmpty()) {
+            mediaInfo!!.visibility = View.GONE
+            return
+        }
+
+        mediaInfoTxt?.text = mediatext
+        mediaIcons?.get(mediaCtl?.packageName)?.let {
+            musicicon?.setImageIcon(it)
+        }
+
+        mediaInfo!!.visibility = View.VISIBLE
+
     }
 
     var sessionCallback: MediaController.Callback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) {
             super.onPlaybackStateChanged(state)
-            checkMediaAndState()
+            checkMediaInfoVisibility()
         }
 
         override fun onMetadataChanged(metadata: MediaMetadata?) {
             super.onMetadataChanged(metadata)
-            checkMediaAndState()
+            checkMediaInfoVisibility()
         }
-
     }
 
     //Threads
@@ -205,16 +212,23 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     //Notifications
     private var transition: TransitionDrawable? = null
     private var notificationAvailable: Boolean = false
-    private var mediaInfo: View? = null
-    private var mediaInfoTxt: TextView? = null
-    private var mediainfoIco: ImageView? = null
+    //private var mediaInfo: View? = null
+
+    //private var mediaInfoTxt: TextView? = null
+    //private var mediainfoIco: ImageView? = null
     private var notificationGrid: RecyclerView? = null
     private val mNotificationReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(c: Context, intent: Intent) {
             val count = intent.getIntExtra("count", 0)
             if (aoNotificationIcons) {
-                val itemArray: ArrayList<Icon> = intent.getParcelableArrayListExtra("icons") ?: arrayListOf()
+                val itemArray: ArrayList<Icon> = intent.getParcelableArrayListExtra("icons")
+                        ?: arrayListOf()
+
+                /*itemArray.firstOrNull{ it.resPackage.equals(mediaCtl?.packageName) }?.let {
+                    musicicon.setImageIcon(it)
+                    itemArray.remove(it)
+                }*/
                 itemArray.removeIf { it.resPackage.equals(mediaCtl?.packageName) }
                 notificationGrid!!.adapter = NotificationGridAdapter(itemArray)
             }
@@ -227,7 +241,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
 
     //Battery saver
     private var powerSaving: Boolean = false
-    private var userPowerSaving: Boolean = false
+    // private var userPowerSaving: Boolean = false
 
     //Proximity
     private var mSensorManager: SensorManager? = null
@@ -275,10 +289,6 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         ao_vibration = prefs.getInt("ao_vibration", 64).toLong()
         aoDoubleTapDisabled = prefs.getBoolean("ao_double_tap_disabled", true)
 //Cutouts
-        if (prefs.getBoolean("hide_display_cutouts", false))
-            setTheme(R.style.CutoutHide)
-        else
-            setTheme(R.style.CutoutIgnore)
 
         when (userTheme) {
             "google" -> setContentView(R.layout.activity_ao_google)
@@ -292,9 +302,9 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         dateTxt = findViewById(R.id.dateTxt)
         batteryIcn = findViewById(R.id.batteryIcn)
         batteryTxt = findViewById(R.id.batteryTxt)
-        mediaInfo = findViewById(R.id.mediainfo)
-        mediaInfoTxt = findViewById(R.id.musicinfotxt)
-        mediainfoIco = findViewById(R.id.musicicon)
+        //mediaInfo = findViewById(R.id.mediainfo)
+        //mediaInfoTxt = findViewById(R.id.musicinfotxt)
+        //mediainfoIco = findViewById(R.id.musicicon)
         notificationGrid = findViewById(R.id.notifications_grid)
 
         if (!aoClock) clockTxt!!.visibility = View.GONE
@@ -338,8 +348,10 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         frame = findViewById<View>(R.id.frame)
         content = findViewById(R.id.fullscreen_content)
         fingersensor = findViewById(R.id.fingersensor)
+        var alpha = (PreferenceManager.getDefaultSharedPreferences(this).getInt("ao_fingerprint_visibility", 3)) / 10f
+        fingersensor!!.alpha = alpha
 
-        userPowerSaving = (getSystemService(Context.POWER_SERVICE) as PowerManager).isPowerSaveMode
+        // userPowerSaving = (getSystemService(Context.POWER_SERVICE) as PowerManager).isPowerSaveMode
 
 //Show on lock screen
         Handler().postDelayed({
@@ -423,12 +435,10 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         }
 
 
-
-
 //Animation
-        val animationDuration = 10000L
-        val animationScale = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f)
-        val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 60000 + animationDuration * animationScale + 1000).toLong()
+        val animationDuration = 200L
+        //  val animationScale = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f)
+        val animationDelay = (prefs!!.getInt("ao_animation_delay", 120) * 1000).toLong()
 
 /* val animationDuration = 10L
 val animationScale = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f)
@@ -442,7 +452,11 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                     animateContent(0)
                     while (!isInterrupted) {
                         sleep(animationDelay)
-                        animateContent(animationDuration)
+                        try {
+                            animateContent(animationDuration)
+                        } catch (e: java.lang.Exception) {
+                            Log.e(Global.LOG_TAG, e.toString())
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e(Global.LOG_TAG, e.toString())
@@ -518,105 +532,61 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         }
 
         mediaInfoTxt!!.setOnTouchListener(object : View.OnTouchListener {
-            var isOn = false
-            var isOncount = 0
             private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
-                private var isOnThread: Thread? = null
-                private val SWIPE_THRESHOLD = 100
-                private val SWIPE_VELOCITY_THRESHOLD = 100
-
-                fun onSwipeRight(): Boolean {
-                    mediaCtl?.let {
-                        it.transportControls.skipToPrevious()
-                    }
-                    return true
-                }
-
-                fun onSwipeLeft(): Boolean {
-                    mediaCtl?.let {
-                        it.transportControls.skipToNext()
-                    }
-                    return true
-                }
-
                 override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                    var result = false
-                    if (!isOn) {
-                        return result
-                    }
-                    try {
-                        val diffY = e2.y - e1.y
-                        val diffX = e2.x - e1.x
-                        if (Math.abs(diffX) > Math.abs(diffY)) {
-                            if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                                if (diffX > 0) {
-                                    result = onSwipeRight()
-                                } else {
-                                    result = onSwipeLeft()
+                    if (mediaInfo.alpha > 0.5f) {
+                        try {
+                            val diffY = e2.y - e1.y
+                            val diffX = e2.x - e1.x
+                            if (Math.abs(diffX) > Math.abs(diffY)) {
+                                if (Math.abs(diffX) > 100 && Math.abs(velocityX) > 100) {
+                                    if (diffX > 0) {
+                                        mediaCtl?.let { it.transportControls.skipToPrevious() }
+                                    } else {
+                                        mediaCtl?.let { it.transportControls.skipToNext() }
+                                    }
+                                    return true
                                 }
                             }
+                        } catch (exception: java.lang.Exception) {
+                            exception.printStackTrace()
                         }
-                    } catch (exception: java.lang.Exception) {
-                        exception.printStackTrace()
                     }
-                    return result
+                    return false
                 }
-
                 override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
-                    if (!isOn) {
-                        return super.onSingleTapConfirmed(e)
-                    }
-                    mediaCtl?.let {
-                        if (it.playbackState?.state == PlaybackState.STATE_PLAYING) {
-                            it.transportControls.pause()
-                        } else {
-                            it.transportControls.play()
+                    if (mediaInfo.alpha > 0.5f) {
+                        mediaCtl?.let {
+                            if (it.playbackState?.state == PlaybackState.STATE_PLAYING) {
+                                it.transportControls.pause()
+                            } else {
+                                it.transportControls.play()
+                            }
                         }
+                        return true
                     }
-                    return super.onSingleTapConfirmed(e)
+                    return false
                 }
 
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onDoubleTap(e: MotionEvent): Boolean {
-                    isOn = !isOn
-                    if (isOn) {
-                        mediaInfo?.animate()?.alpha(1f)?.duration = 1000
-                        isOnThread?.interrupt()
-                        isOnThread = null
-                        isOncount = 4
-                        isOnThread = object : Thread() {
-                            override fun run() {
-                                try {
-                                    while (!isInterrupted) {
-                                        sleep(1000)
-                                        if (isOncount > 0) {
-                                            isOncount--
-                                        } else {
-                                            isOn = false
-                                            mediaInfo?.animate()?.alpha(0.5f)?.duration = 1000
-                                            isOnThread?.interrupt()
-                                            isOnThread = null
-                                            return
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e(Global.LOG_TAG, e.toString())
-                                }
-                            }
-                        }
-                        isOnThread?.start()
-                    } else {
-                        mediaInfo?.animate()?.alpha(0.5f)?.duration = 1000
-                        isOnThread?.interrupt()
-                        isOnThread = null
+                    if (mediaInfo.alpha < 1f) {
+                        restartAnimation()
+                        return true
                     }
-                    return super.onDoubleTap(e)
+                    return false
                 }
             })
 
+            fun restartAnimation(){
+                mediaInfo.animate().cancel()
+                mediaInfo.alpha = 1f
+                mediaInfo.animate().alpha(0.5f).duration = 5000
+            }
+
             override fun onTouch(v: View, event: MotionEvent): Boolean {
-                if (isOn) {
-                    isOncount = 4
+                if (mediaInfo.alpha > 0.5f) {
+                    restartAnimation()
                 }
                 gestureDetector.onTouchEvent(event)
                 v.performClick()
@@ -659,12 +629,23 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
     fun animateContent(animationDuration: Long) {
         Log.i("always", "fingersensortop:" + fingersensorTopPositionRange + "/contenttop:" + contentTopPositionRange)
         fingersensor!!.animate().translationY(fingersensorTopPositionRange).duration = animationDuration
+        fingersensor!!.animate().translationX(fingersensorLeftPositionRange).duration = animationDuration
         content!!.animate().translationY(contentTopPositionRange).duration = animationDuration
     }
 
     val contentTopPositionRange: Float
         get() {
             return getScreenSize() / ((ThreadLocalRandom.current().nextFloat() * 3) + 3)
+        }
+
+    val fingersensorLeftPositionRange: Float
+        get() {
+            val display2 = windowManager.defaultDisplay
+            val size = Point()
+            display2.getSize(size)
+            var screenWidth = size.x
+
+            return (screenWidth * (0.50f)) - (fingersensor!!.width / 2) + ((ThreadLocalRandom.current().nextFloat() * 10) - 5)
         }
 
     val fingersensorTopPositionRange: Float
@@ -681,7 +662,9 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         if (p0!!.sensor.type == Sensor.TYPE_PROXIMITY) {
             if (p0.values[0] == p0.sensor.maximumRange) {
                 content!!.animate().alpha(1F).duration = 1000L
-                fingersensor!!.animate().alpha(1f).duration = 1000L
+
+                var alpha = (PreferenceManager.getDefaultSharedPreferences(this).getInt("ao_fingerprint_visibility", 3)) / 10f
+                fingersensor!!.animate().alpha(alpha).duration = 1000L
                 startServices()
             } else {
                 content!!.animate().alpha(0F).duration = 1000L
@@ -733,7 +716,7 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         super.onStop()
         stopServices()
         if (aoDND && notificationAccess) mNotificationManager!!.setInterruptionFilter(userDND)
-        if (powerSaving && !userPowerSaving) {
+        if (powerSaving) { // && !userPowerSaving) {
             if (rootMode) {
                 Root.shell("settings put global low_power 0")
             } else {

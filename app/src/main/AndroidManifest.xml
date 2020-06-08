@@ -91,20 +91,7 @@
 
         </activity>
 
-        <receiver
-            android:name=".receivers.AdminReceiver"
-            android:description="@string/device_admin_description"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BIND_DEVICE_ADMIN">
-            <meta-data
-                android:name="android.app.device_admin"
-                android:resource="@xml/device_admin" />
 
-            <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-            </intent-filter>
-        </receiver>
 
         <activity
             android:name=".alwayson.AlwaysOn"
@@ -225,16 +212,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.domi04151309.alwayson.preferences.Preferences" />
         </activity>
-        <activity
-            android:name=".preferences.PermissionPreferences"
-            android:label="@string/pref_permissions"
-            android:launchMode="singleTop"
-            android:parentActivityName=".preferences.Preferences">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.github.domi04151309.alwayson.preferences.Preferences" />
-        </activity>
-
 
         <activity
             android:name=".charging.IOS"

@@ -1,10 +1,12 @@
 package io.github.domi04151309.alwayson.alwayson
 
 import android.annotation.TargetApi
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
+import android.os.IBinder
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-
 import io.github.domi04151309.alwayson.objects.Global
 
 
@@ -18,9 +20,10 @@ class AlwaysOnQS : TileService() {
 
     override fun onClick() {
         Global.changeAlwaysOnState(this)
+        updateTile(Global.currentAlwaysOnState(this))
     }
 
-    private fun updateTile(isActive: Boolean) {
+    fun updateTile(isActive: Boolean) {
         val tile = qsTile
         val newState: Int = if (isActive) {
             Tile.STATE_ACTIVE

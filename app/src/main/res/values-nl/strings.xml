@@ -88,7 +88,7 @@ Je kunt het altijdaan-scherm naar eigen inzicht aanpassen met tegels en widgets.
     <string name="pref_ao_behavior">Gedrag</string>
     <string name="pref_ao_vibration">Duur (in milliseconden)</string>
     <string name="pref_ao_vibration_summary">Hoe lang de telefoon moet trillen als je dubbeltikt op het scherm</string>
-    <string name="pref_ao_animation_delay">Animatievertraging (in minuten)</string>
+    <string name="pref_ao_animation_delay">Animatievertraging (in sekunden)</string>
     <string name="pref_ao_animation_delay_summary">Tijd tussen de verschillende posities van de inhoud\nWaarschuwing: té hoge waarden kunnen zorgen voor inbranding!</string>
     <string name="pref_ao_force_brightness">Specifieke helderheid afdwingen</string>
     <string name="pref_ao_force_brightness_summary">Druk om het helderheidsniveau aan te passen</string>
