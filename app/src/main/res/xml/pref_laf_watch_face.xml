@@ -50,7 +50,7 @@
     <SwitchPreference
         android:defaultValue="true"
         android:icon="@drawable/ic_portrait"
-        android:key="ao_edgeGlow"
+        android:key="ao_animate_icons"
         android:summary=""
         android:title="Animate notifications" />
     <SwitchPreference

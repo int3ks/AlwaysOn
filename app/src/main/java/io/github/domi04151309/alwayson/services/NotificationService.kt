@@ -22,7 +22,7 @@ class NotificationService : NotificationListenerService() {
     private var prefs: SharedPreferences? = null
     private var sentRecently: Boolean = false
 
-    val categorys = arrayOf (CATEGORY_MESSAGE,    CATEGORY_EMAIL,    CATEGORY_CALL,    CATEGORY_ALARM,    CATEGORY_SOCIAL,    CATEGORY_REMINDER)
+    val categorys = arrayOf(CATEGORY_MESSAGE, CATEGORY_EMAIL, CATEGORY_CALL, CATEGORY_ALARM, CATEGORY_SOCIAL, CATEGORY_REMINDER)
 
     private val actionReceiver = object : BroadcastReceiver() {
 
@@ -71,36 +71,27 @@ class NotificationService : NotificationListenerService() {
                 for (notification in notifications) {
 
                     AlwaysOn?.mediaIcons?.let {
-                        if(it.get(notification.packageName)==null){
-                            it.put(notification.packageName,notification.notification.smallIcon)
+                        if (it.get(notification.packageName) == null) {
+                            it.put(notification.packageName, notification.notification.smallIcon)
                         }
                     }
-
-                    //visibility public
-                    //category promo
-                   // Log.i("alwayson", notification?.notification?.category ?: "")
-
-                   // notification.notification.visibility = Notification.VISIBILITY_PUBLIC
-
-                   //notification.notification.channelId
-
-                    //if (!notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
                     if (
-                            (categorys.contains(notification?.notification?.category ?: "") || notification?.notification?.sound!=null)
-                            &&  !notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
-                            count++
+                            (categorys.contains(notification?.notification?.category
+                                    ?: "") || notification?.notification?.sound != null)
+                            && !notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
+                        count++
                         if (!apps.contains(notification.packageName)) {
                             apps += notification.packageName
-                            if(notification.notification.color!=0) {
-                                var brighter=Color.rgb( Math.min(255,Color.red(notification.notification.color) + 70), Math.min(255, Color.green(notification.notification.color) + 70), Math.min(255, Color.blue(notification.notification.color) + 70))
+                            if (notification.notification.color != 0) {
+                                var brighter = Color.rgb(Math.min(255, Color.red(notification.notification.color) + 70), Math.min(255, Color.green(notification.notification.color) + 70), Math.min(255, Color.blue(notification.notification.color) + 70))
                                 icons += notification.notification.smallIcon.setTint(brighter)
-                            }else{
+                            } else {
                                 icons += notification.notification.smallIcon
                             }
                         }
                     }
 
-                    if(notification.packageName.toLowerCase().contains("torque")){
+                    if (notification.packageName.toLowerCase().contains("torque")) {
                         LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(Global.REQUEST_STOP))
                     }
                 }

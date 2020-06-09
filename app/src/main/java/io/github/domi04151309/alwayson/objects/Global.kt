@@ -26,6 +26,7 @@ object Global {
     const val NOTIFICATIONS = "io.github.domi04151309.alwayson.NOTIFICATIONS"
 
     const val REQUEST_STOP = "io.github.domi04151309.alwayson.REQUEST_STOP"
+    const val REQUEST_STOP_AND_OFF = "io.github.domi04151309.alwayson.REQUEST_STOP_AND_OFF"
 
     const val ALWAYS_ON_STATE_CHANGED = "io.github.domi04151309.alwayson.ALWAYS_ON_STATE_CHANGED"
 
@@ -43,7 +44,7 @@ object Global {
     }
 
     fun close(context: Context) {
-        MyAccessibility.instance.lockScreen()
+        MyAccessibility.instance?.lockScreen()
         (context as Activity).finish()
     }
 

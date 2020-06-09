@@ -48,6 +48,10 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
     }
 
     fun isInTimePeriod(): Boolean {
+        if(Debug.isDebuggerConnected()){
+            return true
+        }
+
         if(start.equals(end)){
             return true
         }
