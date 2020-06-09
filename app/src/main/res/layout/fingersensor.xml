@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/finger_content"
     android:layout_width="match_parent"
@@ -10,9 +11,13 @@
 
     <ImageView
         android:id="@+id/fingersensor"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:padding="10dp"
         android:alpha="0.8"
-        android:src="@drawable/oneplus_finger" />
+        android:scaleType="fitCenter"
+        android:src="@drawable/oneplus_finger"
+        />
+
+    <!--android:src="?android:attr/fingerprintAuthDrawable"-->
 </LinearLayout>

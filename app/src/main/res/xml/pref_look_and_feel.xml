@@ -7,10 +7,10 @@
         android:summary="@string/pref_ao_watch_face_summary"
         android:title="@string/pref_ao_watch_face" />
     <Preference
-        android:icon="@drawable/ic_smartphone"
-        android:key="pref_background"
-        android:summary="@string/pref_ao_background_summary"
-        android:title="@string/pref_ao_background" />
+        android:icon="@drawable/ic_charging"
+        android:key="charging_style"
+        android:summary="@string/pref_look_and_feel_charging_summary"
+        android:title="@string/pref_look_and_feel_charging" />
     <Preference
         android:icon="@drawable/ic_build"
         android:key="rules"
@@ -21,9 +21,11 @@
         android:key="pref_behavior"
         android:summary="@string/pref_ao_behavior_summary"
         android:title="@string/pref_ao_behavior" />
-    <Preference
-        android:icon="@drawable/ic_more"
-        android:key="pref_other"
-        android:summary="@string/pref_ao_other_summary"
-        android:title="@string/pref_ao_other" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:icon="@drawable/ic_palette"
+        android:key="light_mode"
+        android:summary="@string/pref_look_and_feel_light_summary"
+        android:title="@string/pref_look_and_feel_light" />
+
 </PreferenceScreen>

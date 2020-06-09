@@ -65,6 +65,14 @@
                 android:padding="8dp"
                 android:text="@string/description" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:id="@+id/permission"
+                android:textColor="@android:color/holo_red_dark"
+                android:text="You have to grant permission in adbshell" />
+
         </LinearLayout>
     </ScrollView>
 

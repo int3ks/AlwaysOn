@@ -95,7 +95,7 @@ Je kunt het altijdaan-scherm naar eigen inzicht aanpassen met tegels en widgets.
     <string name="pref_ao_force_brightness_title">Helderheid</string>
     <string name="pref_ao_force_brightness_example">Zó helder wordt tekst getoond op het altijdaan-scherm.</string>
     <string name="pref_ao_pocket_mode">Broekzakmodus</string>
-    <string name="pref_ao_pocket_mode_summary">Schakelt het altijdaan-scherm uit als je telefoon in je broekzak zit\nWaarschuwing: dit kan het accuverbruik verhogen!</string>
+    <string name="pref_ao_pocket_mode_summary">Schakelt het altijdaan-scherm uit als je telefoon in je broekzak zit</string>
     <string name="pref_ao_dnd">Niet storen</string>
     <string name="pref_ao_dnd_summary">Schakel dit in om de nietstoren-modus in te schakelen zolang het altijdaan-scherm wordt getoond</string>
     <string name="pref_ao_power_saving">Energiebesparingsmodus (root)</string>

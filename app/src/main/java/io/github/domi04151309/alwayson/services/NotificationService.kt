@@ -1,6 +1,8 @@
 package io.github.domi04151309.alwayson.services
 
+import android.app.Notification.*
 import android.content.*
+import android.graphics.Color
 import android.graphics.drawable.Icon
 import android.os.Handler
 import android.service.notification.NotificationListenerService
@@ -12,7 +14,6 @@ import io.github.domi04151309.alwayson.alwayson.AlwaysOn
 import io.github.domi04151309.alwayson.objects.Global
 import io.github.domi04151309.alwayson.objects.JSON
 import org.json.JSONArray
-import java.lang.Exception
 
 class NotificationService : NotificationListenerService() {
 
@@ -20,6 +21,8 @@ class NotificationService : NotificationListenerService() {
     private var localManager: LocalBroadcastManager? = null
     private var prefs: SharedPreferences? = null
     private var sentRecently: Boolean = false
+
+    val categorys = arrayOf (CATEGORY_MESSAGE,    CATEGORY_EMAIL,    CATEGORY_CALL,    CATEGORY_ALARM,    CATEGORY_SOCIAL,    CATEGORY_REMINDER)
 
     private val actionReceiver = object : BroadcastReceiver() {
 
@@ -73,12 +76,24 @@ class NotificationService : NotificationListenerService() {
                         }
                     }
 
-                    if (!notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
-                        count++
+                    //visibility public
+                    //category promo
+                   // Log.i("alwayson", notification?.notification?.category ?: "")
+
+                   // notification.notification.visibility = Notification.VISIBILITY_PUBLIC
+
+                   //notification.notification.channelId
+
+                    //if (!notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
+                    if (
+                            (categorys.contains(notification?.notification?.category ?: "") || notification?.notification?.sound!=null)
+                            &&  !notification.isOngoing && !JSON.contains(JSONArray(prefs!!.getString("blocked_notifications", "[]")), notification.packageName)) {
+                            count++
                         if (!apps.contains(notification.packageName)) {
                             apps += notification.packageName
                             if(notification.notification.color!=0) {
-                                icons += notification.notification.smallIcon.setTint(notification.notification.color)
+                                var brighter=Color.rgb( Math.min(255,Color.red(notification.notification.color) + 70), Math.min(255, Color.green(notification.notification.color) + 70), Math.min(255, Color.blue(notification.notification.color) + 70))
+                                icons += notification.notification.smallIcon.setTint(brighter)
                             }else{
                                 icons += notification.notification.smallIcon
                             }

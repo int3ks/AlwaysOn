@@ -28,7 +28,7 @@ object Root {
     fun WriteSupportBatch(con: Context) {
         val SupportBatch = "adb shell pm grant "+ con.packageName + " android.permission.WRITE_SECURE_SETTINGS\n\rTimeout 5"
         try {
-            val newFolder = con.getExternalFilesDir("_Always")
+            val newFolder = con.getExternalFilesDir(null)
             if (!newFolder!!.exists()) {
                 newFolder.mkdir()
             }

@@ -19,6 +19,7 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.*
 import android.provider.Settings
+import android.text.Html
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -58,6 +59,8 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     }
 
 
+    private var userTheme: String? = ""
+    private var userRefresh: Int=1
     private var aoDoubleTapDisabled: Boolean = false
     private var ao_vibration: Long = 0
     private lateinit var comp: ComponentName
@@ -140,7 +143,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
     private val clockHandler = Handler()
     private val clockRunnable = object : Runnable {
         override fun run() {
-            clockTxt!!.text = clockFormat.format(Calendar.getInstance())
+            clockTxt!!.text = getClockText()
             clockHandler.postDelayed(this, CLOCK_DELAY)
         }
     }
@@ -272,15 +275,15 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         var prefs = PreferenceManager.getDefaultSharedPreferences(this)
         rootMode = prefs.getBoolean("root_mode", false)
         powerSaving = prefs.getBoolean("ao_power_saving", false)
-        val userTheme = prefs.getString("ao_style", "google")
+        userTheme = prefs.getString("ao_style", "google")
         aoClock = prefs.getBoolean("ao_clock", true)
         aoDate = prefs.getBoolean("ao_date", true)
         aoBatteryIcn = prefs.getBoolean("ao_batteryIcn", false)
         aoBattery = prefs.getBoolean("ao_battery", true)
         aoMediaInfoTxt = prefs.getBoolean("ao_mediainformation", true)
         aoNotificationIcons = prefs.getBoolean("ao_notification_icons", true)
-        aoEdgeGlow = prefs.getBoolean("ao_edgeGlow", false)
-        aoPocketMode = prefs.getBoolean("ao_pocket_mode", false)
+        aoEdgeGlow = prefs.getBoolean("ao_edgeGlow", true)
+        aoPocketMode = prefs.getBoolean("ao_pocket_mode", true)
         aoDND = prefs.getBoolean("ao_dnd", false)
         aoHeadsUp = prefs.getBoolean("heads_up", false)
         val clock = prefs.getBoolean("hour", false)
@@ -289,6 +292,12 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         ao_vibration = prefs.getInt("ao_vibration", 64).toLong()
         aoDoubleTapDisabled = prefs.getBoolean("ao_double_tap_disabled", true)
 //Cutouts
+        /*if (prefs.getBoolean("hide_display_cutouts", false))
+            setTheme(R.style.CutoutHide)
+        else*/
+
+        setTheme(R.style.CutoutIgnore)
+
 
         when (userTheme) {
             "google" -> setContentView(R.layout.activity_ao_google)
@@ -327,12 +336,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
                     } else "H:mm"
                 }, Locale.getDefault()
         )
-        dateFormat = SimpleDateFormat(
-                if (userTheme == "samsung2") {
-                    "EEE d MMMM"
-                } else {
-                    "EEE, d MMM"
-                }, Locale.getDefault()
+        dateFormat = SimpleDateFormat("EEE d MMMM" , Locale.getDefault()
         )
 
 //Brightness
@@ -369,7 +373,7 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
         }
 
 //Time
-        if (aoClock) clockTxt!!.text = clockFormat.format(Calendar.getInstance())
+        if (aoClock) clockTxt!!.text = getClockText()
 
 //Date
         if (aoDate) {
@@ -388,6 +392,9 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
             val layoutManager = LinearLayoutManager(this)
             layoutManager.orientation = LinearLayoutManager.HORIZONTAL
             notificationGrid!!.layoutManager = layoutManager
+
+
+
         }
 
 //Proximity
@@ -406,24 +413,28 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
 
 //Edge Glow
         if (aoEdgeGlow) {
-            val transitionTime = prefs.getInt("ao_glowDuration", 2000)
+           /* val transitionTime = prefs.getInt("ao_glowDuration", 1000)
             if (transitionTime >= 100) {
-                frame!!.background = when (prefs.getString("ao_glowStyle", "all")) {
-                    "horizontal" -> ContextCompat.getDrawable(this, R.drawable.edge_glow_horizontal)
-                    else -> ContextCompat.getDrawable(this, R.drawable.edge_glow)
-                }
-                transition = frame!!.background as TransitionDrawable
+*/
                 aoEdgeGlowThread = object : Thread() {
+
                     override fun run() {
                         try {
                             while (!isInterrupted) {
-                                if (notificationAvailable) {
-                                    runOnUiThread { transition!!.startTransition(transitionTime) }
-                                    sleep(transitionTime.toLong())
-                                    runOnUiThread { transition!!.reverseTransition(transitionTime) }
-                                    sleep(transitionTime.toLong())
-                                } else
-                                    sleep(1000)
+                                if (notificationGrid?.adapter?.itemCount ?:0 >0) {
+                                    if(notificationGrid!!.alpha>0f){
+                                        notificationGrid!!.animate().cancel()
+                                        notificationGrid!!.animate().alpha(0f).duration=1000
+                                    }else {
+                                        notificationGrid!!.animate().cancel()
+                                         notificationGrid!!.animate().alpha(1f).duration=300
+                                    }
+                                } else{
+                                    notificationGrid!!.animate().cancel()
+                                    notificationGrid!!.animate().alpha(1f).duration = 1
+                                    sleep(5000)
+                                }
+                                sleep(2000)
                             }
                         } catch (e: Exception) {
                             Log.e(Global.LOG_TAG, e.toString())
@@ -431,14 +442,15 @@ class AlwaysOn : OffActivity(), SensorEventListener, MediaSessionManager.OnActiv
                     }
                 }
                 aoEdgeGlowThread.start()
-            }
+            //}
         }
 
 
 //Animation
-        val animationDuration = 200L
+        var animationDuration = 3000L
         //  val animationScale = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f)
         val animationDelay = (prefs!!.getInt("ao_animation_delay", 120) * 1000).toLong()
+        if(animationDelay<5000)animationDuration=100
 
 /* val animationDuration = 10L
 val animationScale = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f)
@@ -498,6 +510,11 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                 stopAndOff()
             }, rulesTimeout * 60000L)
         }
+    }
+
+    private fun getClockText(): CharSequence? {
+
+        return if(userTheme == "oneplus") { Html.fromHtml(clockFormat.format(Calendar.getInstance()).replaceFirst("1","<font color='#aa0000'>1</font>").replace("\n","<br>"))}else{clockFormat.format(Calendar.getInstance())}
     }
 
     private fun setTouchlistener(enabled: Boolean) {
@@ -627,9 +644,9 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
     }
 
     fun animateContent(animationDuration: Long) {
-        Log.i("always", "fingersensortop:" + fingersensorTopPositionRange + "/contenttop:" + contentTopPositionRange)
-        fingersensor!!.animate().translationY(fingersensorTopPositionRange).duration = animationDuration
-        fingersensor!!.animate().translationX(fingersensorLeftPositionRange).duration = animationDuration
+        Log.i("always", "fingersensortop:" + fingersensorTopPositionRange + "fingersensorleft:" + fingersensorLeftPositionRange + "/contenttop:" + contentTopPositionRange)
+        fingersensor!!.animate().translationY(fingersensorTopPositionRange).translationX(fingersensorLeftPositionRange).duration = animationDuration
+        //fingersensor!!.animate().translationX(fingersensorLeftPositionRange).duration = animationDuration
         content!!.animate().translationY(contentTopPositionRange).duration = animationDuration
     }
 
@@ -645,7 +662,7 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             display2.getSize(size)
             var screenWidth = size.x
 
-            return (screenWidth * (0.50f)) - (fingersensor!!.width / 2) + ((ThreadLocalRandom.current().nextFloat() * 10) - 5)
+            return (screenWidth * (0.50f)) - (fingersensor!!.width / 2) + ((ThreadLocalRandom.current().nextFloat() * 30) - 15)
         }
 
     val fingersensorTopPositionRange: Float
@@ -654,7 +671,11 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
             val size = Point()
             display2.getSize(size)
             var screenHeight = size.y
-            return screenHeight * (0.82f + ThreadLocalRandom.current().nextFloat() / 50)
+
+//            return (display2.mode.physicalHeight * (0.767f)) +  ((ThreadLocalRandom.current().nextFloat() * 40) - 20)
+            return (display2.mode.physicalHeight * (0.803f)) - (fingersensor!!.height / 2) +  ((ThreadLocalRandom.current().nextFloat() * 40) - 20)
+
+            //return screenHeight * (0.82f + ThreadLocalRandom.current().nextFloat() / 50)
         }
 
     //Proximity
@@ -662,7 +683,6 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         if (p0!!.sensor.type == Sensor.TYPE_PROXIMITY) {
             if (p0.values[0] == p0.sensor.maximumRange) {
                 content!!.animate().alpha(1F).duration = 1000L
-
                 var alpha = (PreferenceManager.getDefaultSharedPreferences(this).getInt("ao_fingerprint_visibility", 3)) / 10f
                 fingersensor!!.animate().alpha(alpha).duration = 1000L
                 startServices()
@@ -701,12 +721,18 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         // Power saving mode
         if (powerSaving) {
             if (rootMode) {
+                userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate",1)
+                Root.shell("settings put global oneplus_screen_refresh_rate 1")
                 Root.shell("settings put global low_power 1")
                 Root.shell("dumpsys deviceidle force-idle")
             } else {
                 try {
+                    userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate",1)
+                    Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
                     Settings.Global.putInt(this.contentResolver, "low_power", 1)
+                    PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("permission_warning", false).apply()
                 } catch (e: java.lang.Exception) {
+                    PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("permission_warning", true).apply()
                 }
             }
         }
@@ -718,12 +744,13 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
         if (aoDND && notificationAccess) mNotificationManager!!.setInterruptionFilter(userDND)
         if (powerSaving) { // && !userPowerSaving) {
             if (rootMode) {
+                Root.shell("settings put global oneplus_screen_refresh_rate "+userRefresh)
                 Root.shell("settings put global low_power 0")
             } else {
                 try {
                     Settings.Global.putInt(this.contentResolver, "low_power", 0)
-                } catch (e: java.lang.Exception) {
-                }
+                    Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", userRefresh)
+                } catch (e: java.lang.Exception) {}
             }
         }
         if (aoHeadsUp) {

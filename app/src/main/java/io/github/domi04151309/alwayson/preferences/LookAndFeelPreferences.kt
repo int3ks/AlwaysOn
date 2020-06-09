@@ -41,8 +41,8 @@ class LookAndFeelPreferences : AppCompatActivity(),
                 startActivity(Intent(context, LAFWatchFacePreferences::class.java))
                 true
             }
-            findPreference<Preference>("pref_background")!!.setOnPreferenceClickListener {
-                startActivity(Intent(context, LAFBackgroundPreferences::class.java))
+            findPreference<Preference>("charging_style")!!.setOnPreferenceClickListener {
+                startActivity(Intent(context, ChargingLookActivity::class.java))
                 true
             }
             findPreference<Preference>("rules")!!.setOnPreferenceClickListener {
@@ -53,10 +53,7 @@ class LookAndFeelPreferences : AppCompatActivity(),
                 startActivity(Intent(context, LAFBehaviorPreferences::class.java))
                 true
             }
-            findPreference<Preference>("pref_other")!!.setOnPreferenceClickListener {
-                startActivity(Intent(context, LAFOtherPreferences::class.java))
-                true
-            }
+
         }
     }
 

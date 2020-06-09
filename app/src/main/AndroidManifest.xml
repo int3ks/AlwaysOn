@@ -248,15 +248,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.domi04151309.alwayson.preferences.LookAndFeelPreferences" />
         </activity>
-        <activity
-            android:name=".preferences.LAFBackgroundPreferences"
-            android:label="@string/pref_ao_background"
-            android:launchMode="singleTop"
-            android:parentActivityName=".preferences.LookAndFeelPreferences">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.github.domi04151309.alwayson.preferences.LookAndFeelPreferences" />
-        </activity>
+
         <activity
             android:name=".preferences.LAFBehaviorPreferences"
             android:label="@string/pref_ao_behavior"
@@ -266,15 +258,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.domi04151309.alwayson.preferences.LookAndFeelPreferences" />
         </activity>
-        <activity
-            android:name=".preferences.LAFOtherPreferences"
-            android:label="@string/pref_ao_other"
-            android:launchMode="singleTop"
-            android:parentActivityName=".preferences.LookAndFeelPreferences">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.github.domi04151309.alwayson.preferences.LookAndFeelPreferences" />
-        </activity>
+
     </application>
 
 </manifest>

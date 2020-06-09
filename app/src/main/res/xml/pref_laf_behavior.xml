@@ -32,7 +32,7 @@
         android:summary="@string/pref_ao_double_tap_disabled_summary"
         android:title="@string/pref_ao_double_tap_disabled" />
     <SwitchPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:icon="@drawable/ic_hand"
         android:key="ao_pocket_mode"
         android:summary="@string/pref_ao_pocket_mode_summary"

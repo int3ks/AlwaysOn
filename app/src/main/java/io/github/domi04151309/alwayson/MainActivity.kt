@@ -13,6 +13,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -26,6 +27,7 @@ import io.github.domi04151309.alwayson.objects.Theme
 import io.github.domi04151309.alwayson.preferences.Preferences
 import io.github.domi04151309.alwayson.services.ForegroundService
 import io.github.domi04151309.alwayson.services.MyAccessibility
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 
@@ -147,6 +149,14 @@ class MainActivity : Activity() {
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 42)
         }
+
+        if(PreferenceManager.getDefaultSharedPreferences(this).getBoolean("permission_warning", false)){
+            permission.text="You have to grant permission in adbshell -> \nadb shell pm grant "+ this.packageName + "\nandroid.permission.WRITE_SECURE_SETTINGS\n\nyou find a batch on sdcard in \\Android\\data\\io.github.domi04151309.alwayson\\files\\"
+            permission.visibility= View.VISIBLE
+        }else{
+            permission.visibility= View.GONE
+        }
+
         Root.WriteSupportBatch(this)
         isDeviceRoot
         if (!isDeviceAdmin)startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))

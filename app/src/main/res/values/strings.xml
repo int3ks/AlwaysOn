@@ -106,7 +106,7 @@ You can customize your always on display and toggle it on or off with quick tile
     <string name="pref_ao_force_brightness_title">Brightness</string>
     <string name="pref_ao_force_brightness_example">This is how bright the text on your always on display will appear.</string>
     <string name="pref_ao_pocket_mode">Pocket mode</string>
-    <string name="pref_ao_pocket_mode_summary">Disables the always on display in your pocket\nWarning: Sensor usage may cause increased battery usage!</string>
+    <string name="pref_ao_pocket_mode_summary">Disables the always on display in your pocket</string>
     <string name="pref_ao_dnd">Do not disturb</string>
     <string name="pref_ao_dnd_summary">Turns on do not disturb mode while the always on display is running</string>
     <string name="pref_ao_power_saving">Power saving mode (root)</string>
