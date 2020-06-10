@@ -156,7 +156,7 @@ class MainActivity : Activity() {
             permission.visibility= View.GONE
         } catch (e: java.lang.Exception) {
             Root.WriteSupportBatch(this)
-            permission.text="You have to grant permission in adbshell -> \nadb shell pm grant "+ this.packageName + "\nandroid.permission.WRITE_SECURE_SETTINGS\n\nyou find a batch on sdcard in \\Android\\data\\io.github.domi04151309.alwayson\\files\\"
+            permission.text="You have to grant permission in adbshell -> \nadb shell pm grant "+ this.packageName + "\nandroid.permission.WRITE_SECURE_SETTINGS\n\nyou find a batch on sdcard in \\Android\\data\\"+ this.packageName + "\\files\\"
             permission.visibility= View.VISIBLE
         }
 

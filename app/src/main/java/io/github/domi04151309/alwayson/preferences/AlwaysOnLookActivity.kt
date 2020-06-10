@@ -22,7 +22,7 @@ class AlwaysOnLookActivity : AppCompatActivity() {
         val secondSamsungBtn = findViewById<RadioButton>(R.id.secondSamsungBtn)
         val oneplusBtn = findViewById<RadioButton>(R.id.oneplusBtn)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        var value = prefs.getString("ao_style", "google") ?:"google"
+        var value = prefs.getString("ao_style", "oneplus") ?:"oneplus"
 
         when (value) {
             "google" -> {
