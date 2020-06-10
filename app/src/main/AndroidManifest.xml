@@ -6,7 +6,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -144,14 +144,7 @@
             android:showOnLockScreen="true"
             android:taskAffinity=""
             android:theme="@style/AppThemeNoWindowTransitions" />
-        <activity
-            android:name=".Headset"
-            android:configChanges="orientation|screenSize"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:showOnLockScreen="true"
-            android:taskAffinity=""
-            android:theme="@style/AppThemeNoWindowTransitions" />
+
 
         <activity
             android:name=".MainActivity"

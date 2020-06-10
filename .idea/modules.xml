@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AllwaysOn.iml" filepath="$PROJECT_DIR$/.idea/modules/AllwaysOn.iml" group="AllwaysOn" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AllwaysOn-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AllwaysOn-app.iml" group="AllwaysOn/app" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/AlwaysOn.iml" filepath="$PROJECT_DIR$/.idea/modules/AlwaysOn.iml" group="AlwaysOn" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="AlwaysOn/app" />
     </modules>

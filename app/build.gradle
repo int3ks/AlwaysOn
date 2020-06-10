@@ -13,7 +13,7 @@ android {
     }
     compileSdkVersion 29
     defaultConfig {
-        applicationId "io.github.domi04151309.alwayson"
+        applicationId "org.inteks.alwayson"
         minSdkVersion 24
         targetSdkVersion 29
         versionCode 374
@@ -24,8 +24,6 @@ android {
         debug {
             minifyEnabled false
             shrinkResources false
-            applicationIdSuffix '.debug'
-            versionNameSuffix ' debug'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
         }

@@ -11,11 +11,7 @@
         android:key="charging_style"
         android:summary="@string/pref_look_and_feel_charging_summary"
         android:title="@string/pref_look_and_feel_charging" />
-    <Preference
-        android:icon="@drawable/ic_build"
-        android:key="rules"
-        android:summary="@string/pref_look_and_feel_rules_summary"
-        android:title="@string/pref_look_and_feel_rules" />
+
     <Preference
         android:icon="@drawable/ic_speed"
         android:key="pref_behavior"

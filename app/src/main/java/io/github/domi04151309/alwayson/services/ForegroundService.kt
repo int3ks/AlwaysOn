@@ -21,6 +21,7 @@ import android.os.IBinder
 import android.service.quicksettings.TileService
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.PRIORITY_MIN
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import io.github.domi04151309.alwayson.R
@@ -45,8 +46,7 @@ class ForegroundService : Service(), SensorEventListener {
 
     override fun onCreate() {
         super.onCreate()
-        val filter = IntentFilter(Intent.ACTION_HEADSET_PLUG)
-        filter.addAction(Intent.ACTION_POWER_CONNECTED)
+        val filter = IntentFilter(Intent.ACTION_POWER_CONNECTED)
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
         filter.addAction(Intent.ACTION_SCREEN_OFF)
         filter.addAction(Intent.ACTION_SCREEN_ON)
@@ -59,18 +59,16 @@ class ForegroundService : Service(), SensorEventListener {
     }
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
+    var lastPocketState: Boolean = false
     //Proximity
     override fun onSensorChanged(p0: SensorEvent?) {
         if (p0!!.sensor.type == Sensor.TYPE_PROXIMITY) {
-            var locked = (getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isKeyguardLocked();
-            if (p0.values[0] == p0.sensor.maximumRange && !AlwaysOn.servicesRunning) {
+            CombinedServiceReceiver.isInPocket = p0.values[0] != p0.sensor.maximumRange
+            if(CombinedServiceReceiver.isInPocket != lastPocketState){
                 val prefs = PreferenceManager.getDefaultSharedPreferences(this)
                 val rules = Rules(this, prefs)
-                if (locked && rules.isAlwaysOnDisplayEnabled() && rules.matchesBatteryPercentage() && rules.isInTimePeriod()) {
-                    this.startActivity(Intent(this, AlwaysOn::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                }
-            } else if (p0.values[0] < p0.sensor.maximumRange && AlwaysOn.servicesRunning) {
-                LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(Global.REQUEST_STOP_AND_OFF))
+                rules.checkAlwaysOnRuningState("SensorChange")
+                lastPocketState = CombinedServiceReceiver.isInPocket
             }
         }
     }
@@ -87,6 +85,8 @@ class ForegroundService : Service(), SensorEventListener {
                 .setContentText(resources.getString(R.string.service_text))
                 .setSmallIcon(R.drawable.ic_always_on_white)
                 .setShowWhen(false)
+                .setOngoing(true).setWhen(0)
+                .setPriority(PRIORITY_MIN)
                 .build()
 
         startForeground(1, notification)
@@ -104,6 +104,7 @@ class ForegroundService : Service(), SensorEventListener {
                     resources.getString(R.string.service_channel),
                     NotificationManager.IMPORTANCE_LOW
             )
+            serviceChannel.setShowBadge(false);
             getSystemService(NotificationManager::class.java)?.createNotificationChannel(serviceChannel)
         }
     }

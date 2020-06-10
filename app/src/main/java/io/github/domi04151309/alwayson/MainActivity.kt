@@ -6,18 +6,18 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
+import android.net.Uri
 import android.os.BatteryManager
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
-import android.view.ContextThemeWrapper
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
@@ -150,18 +150,33 @@ class MainActivity : Activity() {
             requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 42)
         }
 
-        if(PreferenceManager.getDefaultSharedPreferences(this).getBoolean("permission_warning", false)){
+        try {
+            var userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
+            Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", userRefresh)
+            permission.visibility= View.GONE
+        } catch (e: java.lang.Exception) {
+            Root.WriteSupportBatch(this)
             permission.text="You have to grant permission in adbshell -> \nadb shell pm grant "+ this.packageName + "\nandroid.permission.WRITE_SECURE_SETTINGS\n\nyou find a batch on sdcard in \\Android\\data\\io.github.domi04151309.alwayson\\files\\"
             permission.visibility= View.VISIBLE
-        }else{
-            permission.visibility= View.GONE
         }
 
-        Root.WriteSupportBatch(this)
+
         isDeviceRoot
         if (!isDeviceAdmin)startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         if (!isNotificationServiceEnabled) startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
         if (!Settings.canDrawOverlays(this))startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
+
+
+            val intent = Intent()
+            val packageName = packageName
+            val pm: PowerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
+
+
     }
 
    /* private fun buildDialog(case: Int) {

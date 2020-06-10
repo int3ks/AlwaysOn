@@ -13,10 +13,10 @@
         android:id="@+id/fingersensor"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:padding="10dp"
+        android:padding="5dp"
         android:alpha="0.8"
         android:scaleType="fitCenter"
-        android:src="@drawable/oneplus_finger"
+        android:src="@drawable/oneplus_finger_m"
         />
 
     <!--android:src="?android:attr/fingerprintAuthDrawable"-->

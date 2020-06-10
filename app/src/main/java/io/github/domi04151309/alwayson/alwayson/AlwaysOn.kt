@@ -51,10 +51,10 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         private const val SENSOR_DELAY_SLOW: Int = 1000000
         var mediatext: String = ""
         public var mediaIcons: HashMap<String, Icon> = HashMap()
-        var servicesRunning: Boolean = false
+
     }
 
-
+    private var servicesRunning: Boolean = false
     private var userTheme: String? = ""
     private var userRefresh: Int = 1
     private var aoDoubleTapDisabled: Boolean = false
@@ -196,12 +196,12 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
                         }
                     }
                 }
-                Intent.ACTION_POWER_CONNECTED -> {
+                /*Intent.ACTION_POWER_CONNECTED -> {
                     if (rulesChargingState == "discharging") stopAndOff()
                 }
                 Intent.ACTION_POWER_DISCONNECTED -> {
                     if (rulesChargingState == "charging") stopAndOff()
-                }
+                }*/
             }
         }
     }
@@ -679,9 +679,9 @@ val animationDelay = (prefs!!.getInt("ao_animation_delay", 2) * 6 + animationDur
                     userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
                     Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
                     Settings.Global.putInt(this.contentResolver, "low_power", 1)
-                    PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("permission_warning", false).apply()
+
                 } catch (e: java.lang.Exception) {
-                    PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("permission_warning", true).apply()
+
                 }
             }
         }
