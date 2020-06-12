@@ -20,6 +20,8 @@ class AlwaysOnLookActivity : AppCompatActivity() {
         val googleBtn = findViewById<RadioButton>(R.id.googleBtn)
         val samsungBtn = findViewById<RadioButton>(R.id.samsungBtn)
         val secondSamsungBtn = findViewById<RadioButton>(R.id.secondSamsungBtn)
+        val alwaysOnStyleBtn = findViewById<RadioButton>(R.id.alwaysOnStyleBtn)
+
         val oneplusBtn = findViewById<RadioButton>(R.id.oneplusBtn)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         var value = prefs.getString("ao_style", "oneplus") ?:"oneplus"
@@ -41,6 +43,10 @@ class AlwaysOnLookActivity : AppCompatActivity() {
                 preview.setImageResource(R.drawable.always_on_3)
                 oneplusBtn.isChecked = true
             }
+            "alwaysonstyle" ->{
+                preview.setImageResource(R.drawable.always_on_4)
+                alwaysOnStyleBtn.isChecked = true
+            }
         }
 
         googleBtn.setOnClickListener{
@@ -61,6 +67,11 @@ class AlwaysOnLookActivity : AppCompatActivity() {
         oneplusBtn.setOnClickListener{
             preview.setImageResource(R.drawable.always_on_3)
             value = "oneplus"
+        }
+
+        alwaysOnStyleBtn.setOnClickListener{
+            preview.setImageResource(R.drawable.always_on_4)
+            value = "alwaysonstyle"
         }
 
         findViewById<Button>(R.id.selectBtn).setOnClickListener {

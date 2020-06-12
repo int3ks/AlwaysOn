@@ -66,11 +66,7 @@
                 app:srcCompat="@drawable/ic_battery_unknown" />
         </LinearLayout>
 
-        <include layout="@layout/mediainfo" android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_gravity="center"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
+        <include layout="@layout/mediainfo"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/notifications_grid"

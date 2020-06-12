@@ -9,7 +9,7 @@
         android:summary="@string/pref_look_and_feel_orientation_summary"
         android:title="@string/pref_look_and_feel_orientation" />
     <io.github.domi04151309.alwayson.preferences.EditIntegerPreference
-        android:defaultValue="64"
+        android:defaultValue="10"
         android:icon="@drawable/ic_vibration"
         android:key="ao_vibration"
         android:summary="@string/pref_ao_vibration_summary"
@@ -37,18 +37,21 @@
         android:key="ao_pocket_mode"
         android:summary="@string/pref_ao_pocket_mode_summary"
         android:title="@string/pref_ao_pocket_mode" />
-    <SwitchPreference
-        android:defaultValue="false"
-        android:icon="@drawable/ic_dnd"
-        android:key="ao_dnd"
-        android:summary="@string/pref_ao_dnd_summary"
-        android:title="@string/pref_ao_dnd" />
+
     <SwitchPreference
         android:defaultValue="false"
         android:icon="@drawable/ic_battery"
         android:key="ao_power_saving"
         android:summary="@string/pref_ao_power_saving_summary"
         android:title="@string/pref_ao_power_saving" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:icon="@drawable/ic_battery"
+        android:key="ao_power_saving_60"
+        android:summary="Set displayrefresh to 60Hz while alwayson is running"
+        android:title="Set displayrefresh to 60Hz" />
+
     <SwitchPreference
         android:defaultValue="false"
         android:icon="@drawable/ic_notification"

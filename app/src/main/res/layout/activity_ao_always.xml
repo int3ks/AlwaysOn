@@ -1,0 +1,105 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    tools:context="io.github.domi04151309.alwayson.alwayson.AlwaysOn"
+    tools:ignore="MergeRootFrame">
+
+    <LinearLayout
+        android:id="@+id/fullscreen_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:alpha="0.5"
+            android:orientation="horizontal">
+
+            <TextView
+
+                android:id="@+id/hourTxt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/samsung_sans"
+                android:lineSpacingMultiplier="0.72"
+                android:text="HH"
+                android:textSize="111sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18sp"
+                android:orientation="vertical">
+
+                <TextView
+
+                    android:id="@+id/minuteTxt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="-15sp"
+                    android:fontFamily="@font/samsung_sans"
+                    android:lineSpacingMultiplier="0.72"
+                    android:text="MM"
+                    android:textSize="54sp" />
+
+                <TextView
+                    android:id="@+id/dateTxt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/samsung_sans"
+                    android:gravity="center"
+                    android:text="@string/date"
+                    android:textAllCaps="true"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:orientation="horizontal"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <TextView
+                        android:id="@+id/batteryTxt"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/samsung_sans"
+                        android:gravity="start"
+                        android:text="@string/battery"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:id="@+id/batteryIcn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/feature"
+                        app:srcCompat="@drawable/ic_battery_unknown" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+        <include layout="@layout/mediainfo" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/notifications_grid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/aod_spacing"
+            android:layout_marginBottom="@dimen/aod_spacing" />
+    </LinearLayout>
+
+    <include layout="@layout/fingersensor" />
+</FrameLayout>

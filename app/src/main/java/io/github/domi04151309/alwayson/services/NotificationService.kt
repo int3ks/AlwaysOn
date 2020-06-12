@@ -71,9 +71,9 @@ class NotificationService : NotificationListenerService() {
                 for (notification in notifications) {
 
                     AlwaysOn?.mediaIcons?.let {
-                        if (it.get(notification.packageName) == null) {
-                            it.put(notification.packageName, notification.notification.smallIcon)
-                        }
+
+                        it.put(notification.packageName, notification.notification.smallIcon)
+
                     }
                     if (
                             (categorys.contains(notification?.notification?.category

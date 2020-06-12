@@ -16,8 +16,8 @@ android {
         applicationId "org.inteks.alwayson"
         minSdkVersion 24
         targetSdkVersion 29
-        versionCode 374
-        versionName "3.7.4"
+        versionCode 8
+        versionName "0.0.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

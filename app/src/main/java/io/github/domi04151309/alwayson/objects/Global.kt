@@ -1,23 +1,23 @@
 package io.github.domi04151309.alwayson.objects
 
 import android.app.Activity
-import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.service.quicksettings.TileService
 import android.view.View
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
-import io.github.domi04151309.alwayson.R
 import io.github.domi04151309.alwayson.alwayson.AlwaysOnQS
+import io.github.domi04151309.alwayson.helpers.Rules
+import io.github.domi04151309.alwayson.receivers.CombinedServiceReceiver
 
 import io.github.domi04151309.alwayson.services.MyAccessibility
 
 object Global {
 
+    const val BATTERYLEVEL_CHANGED = "io.github.domi04151309.alwayson.BATTERYLEVEL_CHANGED"
     const val LOG_TAG = "AlwaysOn"
 
     const val REQUEST_DETAILED_NOTIFICATIONS = "io.github.domi04151309.alwayson.REQUEST_DETAILED_NOTIFICATIONS"
@@ -26,7 +26,7 @@ object Global {
     const val NOTIFICATIONS = "io.github.domi04151309.alwayson.NOTIFICATIONS"
 
     const val REQUEST_STOP = "io.github.domi04151309.alwayson.REQUEST_STOP"
-    const val REQUEST_STOP_AND_OFF = "io.github.domi04151309.alwayson.REQUEST_STOP_AND_OFF"
+    const val REQUEST_STOP_AND_SCREENOFF = "io.github.domi04151309.alwayson.REQUEST_STOP_AND_SCREENOFF"
 
     const val ALWAYS_ON_STATE_CHANGED = "io.github.domi04151309.alwayson.ALWAYS_ON_STATE_CHANGED"
 
@@ -43,8 +43,9 @@ object Global {
         return value
     }
 
-    fun close(context: Context) {
+    fun close_old(context: Context) {
         MyAccessibility.instance?.lockScreen()
+        Rules.AlwaysOnRequestScreenOff = true
         (context as Activity).finish()
     }
 

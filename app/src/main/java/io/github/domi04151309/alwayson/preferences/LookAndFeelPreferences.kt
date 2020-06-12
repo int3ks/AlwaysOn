@@ -46,10 +46,7 @@ class LookAndFeelPreferences : AppCompatActivity(),
                 true
             }
 
-            findPreference<Preference>("pref_behavior")!!.setOnPreferenceClickListener {
-                startActivity(Intent(context, LAFBehaviorPreferences::class.java))
-                true
-            }
+
 
         }
     }

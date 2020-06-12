@@ -51,7 +51,7 @@ class IOS : OffActivity() {
                     content.animate().alpha(0f).duration = 1000
                     sleep(1000)
                     runOnUiThread {
-                        Global.close(this@IOS)
+                        Global.close_old(this@IOS)
                     }
                 } catch (e: Exception) {
                     Log.e(Global.LOG_TAG, e.toString())

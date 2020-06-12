@@ -12,11 +12,7 @@
         android:summary="@string/pref_look_and_feel_charging_summary"
         android:title="@string/pref_look_and_feel_charging" />
 
-    <Preference
-        android:icon="@drawable/ic_speed"
-        android:key="pref_behavior"
-        android:summary="@string/pref_ao_behavior_summary"
-        android:title="@string/pref_ao_behavior" />
+
     <SwitchPreference
         android:defaultValue="false"
         android:icon="@drawable/ic_palette"

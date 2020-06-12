@@ -1,38 +1,30 @@
 package io.github.domi04151309.alwayson.services
 
-import android.app.KeyguardManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.graphics.drawable.Icon
+import android.content.*
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.media.audiofx.BassBoost
-import android.media.audiofx.Equalizer
 import android.os.Build
 import android.os.IBinder
-
 import android.service.quicksettings.TileService
-import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.PRIORITY_MIN
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import io.github.domi04151309.alwayson.R
-import io.github.domi04151309.alwayson.alwayson.AlwaysOn
 import io.github.domi04151309.alwayson.alwayson.AlwaysOnQS
 import io.github.domi04151309.alwayson.helpers.Rules
-import io.github.domi04151309.alwayson.objects.Global
 import io.github.domi04151309.alwayson.receivers.CombinedServiceReceiver
+import java.lang.Exception
 
 class ForegroundService : Service(), SensorEventListener {
 
+
+
+    private lateinit var rules: Rules
+    private lateinit var prefs: SharedPreferences
     private val combinedServiceReceiver = CombinedServiceReceiver()
 
     //Proximity
@@ -40,6 +32,7 @@ class ForegroundService : Service(), SensorEventListener {
     private var mProximity: Sensor? = null
 
     companion object {
+        private var lastIsInPocketState: Boolean=false
         const val CHANNEL_ID = "service_channel"
         private const val SENSOR_DELAY_SLOW: Int = 1000000
     }
@@ -50,25 +43,55 @@ class ForegroundService : Service(), SensorEventListener {
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
         filter.addAction(Intent.ACTION_SCREEN_OFF)
         filter.addAction(Intent.ACTION_SCREEN_ON)
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED)
+        filter.addAction(Intent.ACTION_POWER_CONNECTED)
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
+
         registerReceiver(combinedServiceReceiver, filter)
         TileService.requestListeningState(this, ComponentName(this, AlwaysOnQS::class.java))
+
+        prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        rules = Rules(this, prefs)
+
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager!!.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         mSensorManager!!.registerListener(this, mProximity, SENSOR_DELAY_SLOW, SENSOR_DELAY_SLOW)
 
     }
+
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    var lastPocketState: Boolean = false
+
     //Proximity
+
+    //var timeStartInPocket :Long = 0
+    private var inPocketThread: Thread? = null
     override fun onSensorChanged(p0: SensorEvent?) {
         if (p0!!.sensor.type == Sensor.TYPE_PROXIMITY) {
-            CombinedServiceReceiver.isInPocket = p0.values[0] != p0.sensor.maximumRange
-            if(CombinedServiceReceiver.isInPocket != lastPocketState){
-                val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-                val rules = Rules(this, prefs)
-                rules.checkAlwaysOnRuningState("SensorChange")
-                lastPocketState = CombinedServiceReceiver.isInPocket
+            var currentInPocketState = p0.values[0] != p0.sensor.maximumRange
+
+            if(currentInPocketState){
+                 inPocketThread = object : Thread() {
+                    override fun run() {
+                        try {
+                            sleep(5 * 1000)
+                            if(!isInterrupted) {
+                                Rules.isInPocket = true
+                                Rules.StopAlwaysOn(this@ForegroundService)
+                                //rules.checkAlwaysOnRuningState("SensorChange in pocket")
+                            }
+                        }catch (e:Exception){}
+                    }
+                }
+                inPocketThread?.start()
+            }
+
+            if(!currentInPocketState){
+                inPocketThread?.interrupt()
+                if(Rules.isInPocket ) {
+                    Rules.isInPocket = false
+                    rules.checkAlwaysOnRuningState("SensorChange not in pocket")
+                }
             }
         }
     }
@@ -85,8 +108,7 @@ class ForegroundService : Service(), SensorEventListener {
                 .setContentText(resources.getString(R.string.service_text))
                 .setSmallIcon(R.drawable.ic_always_on_white)
                 .setShowWhen(false)
-                .setOngoing(true).setWhen(0)
-                .setPriority(PRIORITY_MIN)
+
                 .build()
 
         startForeground(1, notification)
@@ -104,7 +126,6 @@ class ForegroundService : Service(), SensorEventListener {
                     resources.getString(R.string.service_channel),
                     NotificationManager.IMPORTANCE_LOW
             )
-            serviceChannel.setShowBadge(false);
             getSystemService(NotificationManager::class.java)?.createNotificationChannel(serviceChannel)
         }
     }

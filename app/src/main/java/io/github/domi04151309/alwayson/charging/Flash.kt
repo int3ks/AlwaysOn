@@ -23,7 +23,7 @@ class Flash : OffActivity() {
                     image.animate().alpha(0f).duration = 1000
                     sleep(1000)
                     runOnUiThread {
-                        Global.close(this@Flash)
+                        Global.close_old(this@Flash)
                     }
                 } catch (e: Exception) {
                     Log.e(Global.LOG_TAG, e.toString())
