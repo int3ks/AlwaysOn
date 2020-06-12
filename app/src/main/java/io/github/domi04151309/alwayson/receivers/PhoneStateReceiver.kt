@@ -6,6 +6,7 @@ import android.content.Intent
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import io.github.domi04151309.alwayson.helpers.Rules
 import io.github.domi04151309.alwayson.objects.Global
 
 class PhoneStateReceiver : BroadcastReceiver() {
@@ -15,7 +16,10 @@ class PhoneStateReceiver : BroadcastReceiver() {
             try {
                 intent.getStringExtra(TelephonyManager.EXTRA_STATE)?.let {
                     if (it == TelephonyManager.EXTRA_STATE_RINGING || it == TelephonyManager.EXTRA_STATE_OFFHOOK) {
+                        Rules.OngoingPhonecall = true
                         LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(Global.REQUEST_STOP))
+                    }else{
+                        Rules.OngoingPhonecall = false
                     }
                 }
             } catch (e: Exception) {

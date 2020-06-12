@@ -51,6 +51,8 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
             LocalBroadcastManager.getInstance(c).sendBroadcast(Intent(Global.REQUEST_STOP_AND_SCREENOFF))
             isAlwaysOnRunning = false
         }
+
+        var OngoingPhonecall: Boolean = false
         var batteryLevel: Int = 0
         var isPlugged: Boolean = false
         var AlwaysOnRequestScreenOff: Boolean = false
@@ -82,6 +84,11 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
         }
         if (isInPocket) {
             //Log.i("checkRunningState:", "should NOT run (inPocket)")
+            return false
+        }
+
+        if(OngoingPhonecall){
+            //Log.i("checkRunningState:", "should NOT run (phonecall)")
             return false
         }
 
