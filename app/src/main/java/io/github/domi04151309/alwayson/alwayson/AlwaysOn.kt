@@ -39,6 +39,7 @@ import io.github.domi04151309.alwayson.services.MyAccessibility
 import io.github.domi04151309.alwayson.services.NotificationService
 import kotlinx.android.synthetic.main.activity_ao_always.*
 import kotlinx.android.synthetic.main.mediainfo.*
+import java.lang.Thread.sleep
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.collections.HashMap
@@ -49,11 +50,14 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     companion object {
         var mediatext: String = ""
         var mediaIcons: HashMap<String, Icon> = HashMap()
+        var mediaInfoManualVisible: Boolean = false
     }
+
 
     private var servicesRunning: Boolean = false
     private var userTheme: String? = ""
     private var userRefresh: Int = 1
+    private var userDisplayTimeout: Int = -1
     private var aoDoubleTapDisabled: Boolean = false
     private var ao_vibration: Long = 0
     private lateinit var comp: ComponentName
@@ -76,7 +80,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
     fun checkMediaInfoVisibility() {
         if (mediaCtl == null) {
-            mediaInfo!!.visibility = View.GONE
+            mediaInfo.visibility = View.GONE
             return
         }
         mediaCtl?.metadata?.let { meta ->
@@ -87,7 +91,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         }
 
         if (mediatext == null || mediatext.isEmpty()) {
-            mediaInfo!!.visibility = View.GONE
+            mediaInfo.visibility = View.GONE
             return
         }
 
@@ -95,7 +99,11 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         mediaIcons?.get(mediaCtl?.packageName)?.let {
             musicicon?.setImageIcon(it)
         }
-        mediaInfo!!.visibility = View.VISIBLE
+        if(mediaCtl?.playbackState?.state?.equals(PlaybackState.STATE_PLAYING)!!  || mediaInfoManualVisible) {
+            mediaInfo.visibility = View.VISIBLE
+        }else{
+            mediaInfo.visibility = View.GONE
+        }
     }
 
     var sessionCallback: MediaController.Callback = object : MediaController.Callback() {
@@ -123,11 +131,12 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     private var aoNotificationIcons: Boolean = false
     private var animateIcons: Boolean = true
     private var aoPocketMode: Boolean = false
+
     //private var aoDND: Boolean = false
     private var aoHeadsUp: Boolean = false
 
     //DateTime
-    private var clockTxt: TextView? = null
+    //private var clockTxt: TextView? = null
     private var clockFormat: SimpleDateFormat = SimpleDateFormat("", Locale.getDefault())
 
     private var dateTxt: TextView? = null
@@ -141,13 +150,14 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     }
 
     private fun setClockAndDate() {
-        if (aoClock){
-            if(userTheme.equals("alwaysonstyle")){
+        if (aoClock) {
+            if (userTheme.equals("alwaysonstyle")) {
 
                 minuteTxt.text = getClockText().split(":")[1]
                 hourTxt.text = getClockText().split(":")[0]
-            }else{
-                clockTxt!!.text = getClockText()
+            } else {
+//                findViewById<TextView>(R.id.clockTxt).text = getClockText()
+                (clockTxt as TextView).text = getClockText()
             }
 
         }
@@ -203,20 +213,24 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
 
     fun animateNotificationGrid() {
-        val minAlpha = 0.4f
-        val maxAlpha = 0.8f
+        val minAlpha = 0.5f
+        val maxAlpha = 1f
 
-        val fadeInDuration = 800L
-        val fadeOutDuration = 2200L
+        val fadeInDuration = 500L
+        val fadeOutDuration = 1000L
+        val fadePauseAfterFadeOut = 500L
+        val fadePauseAfterFadeIn = 3000L
 
         notificationGrid!!.animate().cancel()
         if (animateIcons && notificationGrid?.adapter?.itemCount ?: 0 > 0) {
             var newAlpha = if (notificationGrid!!.alpha > minAlpha) minAlpha else maxAlpha
+            var newPause = if (notificationGrid!!.alpha > minAlpha) fadePauseAfterFadeOut else fadePauseAfterFadeIn
             var newDuration = if (newAlpha == maxAlpha) fadeInDuration else fadeOutDuration
 
             notificationGrid!!.animate().alpha(newAlpha).setListener(object : Animator.AnimatorListener {
                 override fun onAnimationEnd(animation: Animator?) {
                     animateNotificationGrid()
+                    sleep(newPause)
                 }
 
                 override fun onAnimationRepeat(animation: Animator?) {}
@@ -257,13 +271,13 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             when (intent.action) {
                 Global.REQUEST_STOP -> {
                     finish()
-                    Rules.isAlwaysOnRunning=false
+                    Rules.isAlwaysOnRunning = false
                 }
                 Global.REQUEST_STOP_AND_SCREENOFF -> {
                     finish()
                     MyAccessibility.instance?.lockScreen()
                     Rules.AlwaysOnRequestScreenOff = true
-                    Rules.isAlwaysOnRunning=false
+                    Rules.isAlwaysOnRunning = false
                 }
             }
         }
@@ -271,7 +285,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
     //Rules
     //private var rulesChargingState: String = ""
-   // private var rulesBattery: Int = 0
+    // private var rulesBattery: Int = 0
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -313,7 +327,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         }
 
 //Watch face
-        clockTxt = findViewById(R.id.clockTxt)
+        //clockTxt = findViewById(R.id.clockTxt)
         dateTxt = findViewById(R.id.dateTxt)
         batteryIcn = findViewById(R.id.batteryIcn)
         batteryTxt = findViewById(R.id.batteryTxt)
@@ -402,12 +416,12 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
 
 //DND
-       /* if (aoDND) {
-            mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationAccess = mNotificationManager!!.isNotificationPolicyAccessGranted
-            if (notificationAccess) userDND = mNotificationManager!!.currentInterruptionFilter
-        }
-*/
+        /* if (aoDND) {
+             mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+             notificationAccess = mNotificationManager!!.isNotificationPolicyAccessGranted
+             if (notificationAccess) userDND = mNotificationManager!!.currentInterruptionFilter
+         }
+ */
 //Edge Glow
 
 
@@ -438,10 +452,8 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             }
         }
         animationThread.start()
-
-        if (!aoMediaInfoTxt) {
-            mediaInfo!!.visibility = View.GONE
-        } else {
+        mediaInfo.visibility = View.GONE
+        if (aoMediaInfoTxt) {
             msm = this.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
             comp = ComponentName(this.applicationContext, NotificationService::class.java.name)
             try {
@@ -497,6 +509,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             mediaInfoTxt!!.setOnTouchListener(null)
             frame!!.setOnTouchListener(null)
             fingersensor!!.setOnTouchListener(null)
+            clockTxt.setOnTouchListener(null)
             return
         }
 
@@ -521,6 +534,41 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
                 }
             })
         }
+
+        fun restartMediaInfoAnimation() {
+            mediaInfo.animate().cancel()
+            mediaInfo.alpha = 1f
+            mediaInfo.animate().alpha(0.5f).setListener(object : Animator.AnimatorListener {
+                override fun onAnimationEnd(animation: Animator?) {
+                    if(!mediaCtl?.playbackState?.state?.equals(PlaybackState.STATE_PLAYING)!! && mediaInfo.alpha <= 0.5f){
+                        mediaInfoManualVisible = false
+                        checkMediaInfoVisibility()
+                    }
+                }
+
+                override fun onAnimationRepeat(animation: Animator?) {}
+                override fun onAnimationCancel(animation: Animator?) {}
+                override fun onAnimationStart(animation: Animator?) {}
+            }).duration = 8000
+        }
+
+        clockTxt.setOnTouchListener(object : View.OnTouchListener {
+            private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    mediaInfoManualVisible = !mediaInfoManualVisible
+                    checkMediaInfoVisibility()
+                    restartMediaInfoAnimation()
+                    return super.onDoubleTap(e)
+                }
+            })
+
+            override fun onTouch(v: View, event: MotionEvent): Boolean {
+                gestureDetector.onTouchEvent(event)
+                v.performClick()
+                return true
+            }
+        })
+
 
         mediaInfoTxt!!.setOnTouchListener(object : View.OnTouchListener {
             private val gestureDetector = GestureDetector(this@AlwaysOn, object : GestureDetector.SimpleOnGestureListener() {
@@ -562,23 +610,21 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun onDoubleTap(e: MotionEvent): Boolean {
+                    // mediaControls.visibility = if (mediaControls.visibility==View.GONE) View.VISIBLE else View.GONE
+
                     if (mediaInfo.alpha < 1f) {
-                        restartAnimation()
+                        restartMediaInfoAnimation()
                         return true
                     }
                     return false
                 }
             })
 
-            fun restartAnimation() {
-                mediaInfo.animate().cancel()
-                mediaInfo.alpha = 1f
-                mediaInfo.animate().alpha(0.5f).duration = 5000
-            }
+
 
             override fun onTouch(v: View, event: MotionEvent): Boolean {
                 if (mediaInfo.alpha > 0.5f) {
-                    restartAnimation()
+                    restartMediaInfoAnimation()
                 }
                 gestureDetector.onTouchEvent(event)
                 v.performClick()
@@ -619,7 +665,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     }
 
     fun animateContent(animationDuration: Long) {
-        //Log.i("always", "fingersensortop:" + fingersensorTopPositionRange + "fingersensorleft:" + fingersensorLeftPositionRange + "/contenttop:" + contentTopPositionRange)
+        Log.i("always", "fingersensortop:${fingersensorTopPositionRange.toInt()} fingersensorleft:${fingersensorLeftPositionRange.toInt()} contenttop:${contentTopPositionRange.toInt()}")
         fingersensor!!.animate().y(fingersensorTopPositionRange).x(fingersensorLeftPositionRange).duration = animationDuration
         content!!.animate().y(contentTopPositionRange).duration = animationDuration
     }
@@ -628,91 +674,86 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     val screenWidth: Int get() = windowManager.defaultDisplay.mode.physicalWidth
 
 
-
-    val contentTopPositionRange: Float get() = ThreadLocalRandom.current().nextInt(100, screenHeight / 4 ).toFloat()
-    val fingersensorLeftPositionRange: Float get() = (screenWidth * (0.50f)) - (fingersensor!!.width / 2) + ((ThreadLocalRandom.current().nextFloat() * 30) - 15)
+    val contentTopPositionRange: Float get() = ThreadLocalRandom.current().nextInt(100, screenHeight / 4).toFloat()
+    val fingersensorLeftPositionRange: Float get() = (screenWidth * (0.50f)) - (fingersensor!!.width / 2) + ((ThreadLocalRandom.current().nextFloat() * 20) - 10)
     val fingersensorTopPositionRange: Float get() = (screenHeight * (0.803f)) - (fingersensor!!.height / 2) + ((ThreadLocalRandom.current().nextFloat() * 40) - 20)
 
 
     override fun onStart() {
         super.onStart()
         hideUI()
+        Rules.isAlwaysOnRunning = true
         //CombinedServiceReceiver.isAlwaysOnRunning = true
 //Global.lastPowerKeyPressed=null
         startServices()
         //if (aoDND && notificationAccess) mNotificationManager!!.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
         if (aoHeadsUp) {
-            if (rootMode) {
-                Root.shell("settings put global heads_up_notifications_enabled 0")
-            } else {
-                try {
-                    Settings.Global.putInt(this.contentResolver, "heads_up_notifications_enabled", 0)
-                } catch (e: java.lang.Exception) {
+            try {
+                Settings.Global.putInt(this.contentResolver, "heads_up_notifications_enabled", 0)
+            } catch (e: java.lang.Exception) {
+                if (rootMode) {
+                    Root.shell("settings put global heads_up_notifications_enabled 0")
                 }
             }
         }
         // Power saving mode
         if (powerSaving) {
-            if (rootMode) {
-                Root.shell("settings put global low_power 1")
-                Root.shell("dumpsys deviceidle force-idle")
-            } else {
-                try {
-                    Settings.Global.putInt(this.contentResolver, "low_power", 1)
-                } catch (e: java.lang.Exception) {
+            try {
+                userDisplayTimeout = Settings.System.getInt(this.contentResolver, "screen_off_timeout", -1)
+                Settings.Global.putInt(this.contentResolver, "low_power", 1)
+            } catch (e: java.lang.Exception) {
+                if (rootMode) {
+                    Root.shell("settings put global low_power 1")
                 }
+            }
+            if (rootMode) {
+                Root.shell("dumpsys deviceidle force-idle")
             }
         }
         if (powerSaving60) {
-            if (rootMode) {
+            try {
                 userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
-                Root.shell("settings put global oneplus_screen_refresh_rate 1")
-            } else {
-                try {
+                Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
+            } catch (e: java.lang.Exception) {
+                if (rootMode) {
                     userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
-                    Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
-                } catch (e: java.lang.Exception) {
+                    Root.shell("settings put global oneplus_screen_refresh_rate 1")
                 }
             }
         }
-
     }
 
     override fun onStop() {
         super.onStop()
-
-        //CombinedServiceReceiver.isAlwaysOnRunning = false
+        Rules.isAlwaysOnRunning = false
         stopServices()
-        //if (aoDND && notificationAccess) mNotificationManager!!.setInterruptionFilter(userDND)
-        if (powerSaving) { // && !userPowerSaving) {
-            if (rootMode) {
-                Root.shell("settings put global low_power 0")
-            } else {
-                try {
-                    Settings.Global.putInt(this.contentResolver, "low_power", 0)
-                } catch (e: java.lang.Exception) {
+        if (powerSaving){
+            try {
+                Settings.Global.putInt(this.contentResolver, "low_power", 0)
+                if (userDisplayTimeout > 0) Settings.System.putInt(this.contentResolver, "screen_off_timeout", userDisplayTimeout)
+            } catch (e: java.lang.Exception) {
+                if (rootMode) {
+                    Root.shell("settings put global low_power 0")
+                    if (userDisplayTimeout > 0) Root.shell("settings put system screen_off_timeout " + userDisplayTimeout)
                 }
             }
         }
-        if (powerSaving60) { // && !userPowerSaving) {
-            if (rootMode) {
-                Root.shell("settings put global oneplus_screen_refresh_rate " + userRefresh)
-            } else {
-                try {
-                    Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", userRefresh)
-                } catch (e: java.lang.Exception) {
+        if (powerSaving60){
+            try {
+                Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", userRefresh)
+            } catch (e: java.lang.Exception) {
+                if (rootMode) {
+                    Root.shell("settings put global oneplus_screen_refresh_rate " + userRefresh)
                 }
             }
         }
 
-
-        if (aoHeadsUp) {
-            if (rootMode) {
-                Root.shell("settings put global heads_up_notifications_enabled 1")
-            } else {
-                try {
-                    Settings.Global.putInt(this.contentResolver, "heads_up_notifications_enabled", 1)
-                } catch (e: java.lang.Exception) {
+        if (aoHeadsUp){
+            try {
+                Settings.Global.putInt(this.contentResolver, "heads_up_notifications_enabled", 1)
+            } catch (e: java.lang.Exception) {
+                if (rootMode) {
+                    Root.shell("settings put global heads_up_notifications_enabled 1")
                 }
             }
         }
@@ -721,6 +762,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     override fun onDestroy() {
         super.onDestroy()
 
+        Rules.isAlwaysOnRunning = false
 
         if (animateIcons) aoAnimateIconsThread?.interrupt()
         animationThread.interrupt()

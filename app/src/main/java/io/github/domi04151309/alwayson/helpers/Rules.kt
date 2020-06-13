@@ -1,21 +1,24 @@
 package io.github.domi04151309.alwayson.helpers
 
+
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.icu.util.Calendar
 import android.os.Debug
 import android.os.PowerManager
+import android.text.format.DateFormat
 import android.util.Log
-
-
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.github.domi04151309.alwayson.TurnOnScreen
 import io.github.domi04151309.alwayson.alwayson.AlwaysOn
 import io.github.domi04151309.alwayson.objects.Global
+import java.io.File
+import java.io.FileOutputStream
 
 
 class Rules(private val c: Context, private val prefs: SharedPreferences) {
+
 
     private var now = Calendar.getInstance()
     private var start = Calendar.getInstance()
@@ -42,94 +45,187 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
 
 
     companion object {
-        fun isScreenOn(c: Context): Boolean {
-            val pm = c.getSystemService(Context.POWER_SERVICE) as PowerManager?
-            val isScreenOn = pm!!.isScreenOn
-            return isScreenOn
-        }
-        fun StopAlwaysOn(c: Context) {
+
+        fun StopAlwaysOn(c: Context, reason: String) {
+            LogInfo(c, "StopAlwayson ${reason}")
             LocalBroadcastManager.getInstance(c).sendBroadcast(Intent(Global.REQUEST_STOP_AND_SCREENOFF))
             isAlwaysOnRunning = false
         }
 
+        fun LogInfo(c: Context, txt: String) {
+            Log.i("checkRunningState:", txt)
+            try {
+                val newFolder = c.getExternalFilesDir(null)
+                if (!newFolder!!.exists()) {
+                    newFolder.mkdir()
+                }
+                val date = java.util.Calendar.getInstance().time
+
+                val file = File(newFolder, "${DateFormat.format("yyyy-MM-dd", date)}_checkRunningState.txt")
+                file.createNewFile()
+                val fos: FileOutputStream
+                fos = FileOutputStream(file, true)
+
+
+                val sDate = "${DateFormat.format("hh:mm:ss ", date)}".trimIndent()
+                fos.write(sDate.toByteArray())
+                fos.flush()
+                val data = (txt + "\n").toByteArray()
+                fos.write(data)
+                fos.flush()
+                fos.close()
+            } catch (e1: Exception) {
+                /*wenn das nich geht , dann nacht mattes ;) */
+            }
+        }
+
+        private var isScreenOn: Boolean = false
+        var alwaysonSwitchScreenOn: Boolean = false
         var OngoingPhonecall: Boolean = false
         var batteryLevel: Int = 0
         var isPlugged: Boolean = false
         var AlwaysOnRequestScreenOff: Boolean = false
         var isInPocket: Boolean = false
+
         //var isScreenOn: Boolean = true
         var isAlwaysOnRunning: Boolean = false
     }
 
+    fun LogInfo(txt: String) {
+        LogInfo(c, txt)
+    }
+
     fun checkAlwaysOnRuningState(because: String) {
-        //Log.i("checkRunningState:", "checkRunningState:" + because)
+        LogInfo("checkRunningState because:" + because)
         if (AlwaysOnShouldBeRunning()) {
             if (!isAlwaysOnRunning) {
-                //Log.i("checkRunningState:", "StartAlwayson")
                 StartAlwaysOn()
+            } else {
+                LogInfo("should run BUT is allready running")
             }
+
+
         } else {
             if (isAlwaysOnRunning) {
-                //Log.i("checkRunningState:", "StopAlwayson")
-                StopAlwaysOn(c)
+                StopAlwaysOn(c,because)
+            } else {
+                LogInfo("should NOT run AND Isnt running")
             }
         }
     }
 
     private fun AlwaysOnShouldBeRunning(): Boolean {
 
-        if (isScreenOn(c)) {
-            //Log.i("checkRunningState:", "should NOT run (screenon)")
-            return false
-        }
-        if (isInPocket) {
-            //Log.i("checkRunningState:", "should NOT run (inPocket)")
+
+        if (isScreenOn) {
+            LogInfo("should NOT run (screenIsOn)")
             return false
         }
 
-        if(OngoingPhonecall){
-            //Log.i("checkRunningState:", "should NOT run (phonecall)")
+        val isSysScreenOn = (c.getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
+        if (isSysScreenOn) {
+            LogInfo("should NOT run (isSysScreenOn)")
+            return false
+        }
+
+        if (isInPocket) {
+            LogInfo("should NOT run (isInPocket)")
+            return false
+        }
+
+        if (OngoingPhonecall) {
+            LogInfo("should NOT run (ongoingPhonecall)")
             return false
         }
 
         if (!isAlwaysOnDisplayEnabled()) {
-            //Log.i("checkRunningState:", "should NOT run (isAlwaysOnDisplayEnabled)")
+            LogInfo("should NOT run (AlwaysOnIsNotEnabled)")
             return false
         }
 
         if (!matchesBatteryPercentage()) {
-            //Log.i("checkRunningState:", "should NOT run (matchesBatteryPercentage)")
+            LogInfo("should NOT run (doesntMatchesBatteryPercentage)")
             return false
         }
         if (!isInTimePeriod()) {
-            //Log.i("checkRunningState:", "should NOT run (isInTimePeriod)")
+            LogInfo("should NOT run (isNotInTimePeriod)")
             return false
         }
 
         if (!matchesChargingState()) {
-            //Log.i("checkRunningState:", "should NOT run (isInTimePeriod)")
+            LogInfo("should NOT run (doesntMatchChargingState)")
             return false
         }
-        //Log.i("checkRunningState:", "should run")
+        LogInfo("should run")
         return true
     }
 
-    fun OnScreenOff() {
-        if (isAlwaysOnDisplayEnabled()) {
-            if (!AlwaysOnRequestScreenOff) {
-                checkAlwaysOnRuningState("ScreenOff")
+    /*private var screenOffThread: Thread? = null
+    fun OnScreenOff(){
+        isScreenOn=false
+        LogInfo( "screen OFF event")
+            screenOffThread = object : Thread() {
+                override fun run() {
+                    try {
+                        sleep( 1500)
+                        if(!isInterrupted) {
+                            LogInfo( "screen OFF event trhread")
+                            if (isAlwaysOnDisplayEnabled()) {
+                                //if (!AlwaysOnRequestScreenOff) {
+                                    checkAlwaysOnRuningState("ScreenOff")
+                                //}else{
+                                 //   LogInfo("AlwaysOnRequestScreenOff do nothing")
+                               // }
+
+
+                            }
+                        }
+                    }catch (e: java.lang.Exception){}
+                }
             }
+            screenOffThread?.start()
+
+    }
+*/
+    /* fun OnScreenOn() {
+         isScreenOn = true
+         screenOffThread?.interrupt()
+         if(alwaysonSwitchScreenOn){
+             alwaysonSwitchScreenOn = false
+             LogInfo( "screen ON event (alwayson)")
+         }else{
+             LogInfo( "screen ON event (user)")
+         }
+
+         AlwaysOnRequestScreenOff = false
+     }*/
+
+    fun OnScreenOff() {
+        isScreenOn = false
+        LocalBroadcastManager.getInstance(c).sendBroadcast(Intent(Global.REQUEST_STOP))
+        LogInfo("screen OFF event")
+        if (isAlwaysOnDisplayEnabled()) {
+            //if (!AlwaysOnRequestScreenOff) {
+            checkAlwaysOnRuningState("ScreenOff")
+            // }
         }
     }
 
     fun OnScreenOn() {
-        //Log.i("checkRunningState:", "screen on event")
+        isScreenOn=true
+        if (alwaysonSwitchScreenOn) {
+            alwaysonSwitchScreenOn = false
+            LogInfo("screen ON event (alwayson)")
+        } else {
+            LogInfo("screen ON event (user)")
+        }
         AlwaysOnRequestScreenOff = false
     }
 
 
-
     private fun StartAlwaysOn() {
+        alwaysonSwitchScreenOn = true
+        LogInfo("StartAlwayson")
         c.startActivity(Intent(c, AlwaysOn::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         isAlwaysOnRunning = true
     }
@@ -148,16 +244,16 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
 
         val ruleChargingState = prefs.getString("rules_charging_state", "always")
         if (ruleChargingState == "always") {
-            //Log.i("checkRunningState:", "rule is always")
+            LogInfo("rule is always")
             return true
         }
 
         if (ruleChargingState == "charging" && isPlugged) {
-            //Log.i("checkRunningState:", "rule is charging and is plugged")
+            LogInfo("rule is charging and is plugged")
             return true
         }
         if (ruleChargingState == "discharging" && !isPlugged) {
-            //Log.i("checkRunningState:", "rule is discharging and NOT is plugged")
+            LogInfo("rule is discharging and NOT is plugged")
             return true
         }
         return false

@@ -34,6 +34,7 @@ public class MyAccessibility extends AccessibilityService {
             String packages = event.getPackageName().toString();
 
             if (packages.contains("com.oneplus.camera")) {
+
                 LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Global.REQUEST_STOP));
             }
         }

@@ -77,7 +77,9 @@ class ForegroundService : Service(), SensorEventListener {
                             sleep(5 * 1000)
                             if(!isInterrupted) {
                                 Rules.isInPocket = true
-                                Rules.StopAlwaysOn(this@ForegroundService)
+                                if(Rules.isAlwaysOnRunning) {
+                                    Rules.StopAlwaysOn(this@ForegroundService, "isInPocket")
+                                }
                                 //rules.checkAlwaysOnRuningState("SensorChange in pocket")
                             }
                         }catch (e:Exception){}

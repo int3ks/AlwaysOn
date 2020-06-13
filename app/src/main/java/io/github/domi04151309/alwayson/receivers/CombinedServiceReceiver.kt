@@ -26,7 +26,7 @@ class CombinedServiceReceiver : BroadcastReceiver() {
         when (intent.action) {
             Intent.ACTION_BATTERY_CHANGED -> {
                 val chargePlug: Int = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
-                Rules.isPlugged = chargePlug == BatteryManager.BATTERY_PLUGGED_AC || chargePlug == BatteryManager.BATTERY_PLUGGED_USB || chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+                Rules.isPlugged = chargePlug >0// == BatteryManager.BATTERY_PLUGGED_AC || chargePlug == BatteryManager.BATTERY_PLUGGED_USB || chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
                 val newLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0)
 
                 if(newLevel != Rules.batteryLevel){
@@ -37,14 +37,16 @@ class CombinedServiceReceiver : BroadcastReceiver() {
             }
 
             Intent.ACTION_POWER_CONNECTED -> {
-                val chargePlug: Int = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
-                Rules.isPlugged = chargePlug == BatteryManager.BATTERY_PLUGGED_AC || chargePlug == BatteryManager.BATTERY_PLUGGED_USB || chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
-
+                //val chargePlug: Int = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
+                //Rules.isPlugged = chargePlug > 0// == BatteryManager.BATTERY_PLUGGED_AC || chargePlug == BatteryManager.BATTERY_PLUGGED_USB || chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+                Rules.isPlugged= true;
 
 
 
                 if (prefs.getBoolean("charging_animation", false)) {
-                    if (!Rules.isScreenOn(c) || Rules.isAlwaysOnRunning) {
+                    val pm = c.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                    val isScreenOn = pm!!.isInteractive
+                    if (!isScreenOn || Rules.isAlwaysOnRunning) {
                         if (Rules.isAlwaysOnRunning) LocalBroadcastManager.getInstance(c).sendBroadcast(Intent(Global.REQUEST_STOP))
                         val i: Intent = when (prefs.getString("charging_style", "circle")) {
                             "ios" -> Intent(c, IOS::class.java)
@@ -59,6 +61,7 @@ class CombinedServiceReceiver : BroadcastReceiver() {
                 }
             }
             Intent.ACTION_POWER_DISCONNECTED -> {
+                Rules.isPlugged= false;
                 Rules(c, prefs).checkAlwaysOnRuningState("PowerDisconnected")
             }
             Intent.ACTION_SCREEN_OFF -> {

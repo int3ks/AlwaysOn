@@ -41,7 +41,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/aod_spacing"
+            android:layout_marginTop="3dp"
             android:layout_marginBottom="@dimen/aod_spacing"
             android:layout_gravity="center"
             android:orientation="horizontal"
@@ -55,7 +55,7 @@
 
                 android:gravity="start"
                 android:text="@string/battery"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <ImageView
                 android:id="@+id/batteryIcn"

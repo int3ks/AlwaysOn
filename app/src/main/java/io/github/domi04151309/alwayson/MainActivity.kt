@@ -145,6 +145,9 @@ class MainActivity : Activity() {
     override fun onStart() {
         super.onStart()
 
+        if(!Settings.System.canWrite(this)){
+            requestPermissions(arrayOf(Manifest.permission.WRITE_SETTINGS),101);
+        }
 
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 42)

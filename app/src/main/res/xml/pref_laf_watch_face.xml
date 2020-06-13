@@ -71,8 +71,8 @@
         android:defaultValue="3"
         android:icon="@drawable/ic_touch_app"
         android:key="ao_fingerprint_visibility"
-        android:summary="visibility of the fingerprint icon (0 to 10)"
-        android:title="finderprint visibility" />
+        android:summary="Visibility of the fingerprint icon (0 to 10)"
+        android:title="Fingerprint visibility" />
 
     <Preference
         android:icon="@drawable/ic_notification"
