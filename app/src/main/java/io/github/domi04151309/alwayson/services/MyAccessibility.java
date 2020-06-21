@@ -1,22 +1,16 @@
 package io.github.domi04151309.alwayson.services;
 
 import android.accessibilityservice.AccessibilityService;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.util.List;
-
+import io.github.domi04151309.alwayson.helpers.Rules;
 import io.github.domi04151309.alwayson.objects.Global;
 
 public class MyAccessibility extends AccessibilityService {
@@ -34,8 +28,10 @@ public class MyAccessibility extends AccessibilityService {
             String packages = event.getPackageName().toString();
 
             if (packages.contains("com.oneplus.camera")) {
-
+                Rules.isCameraOn = true;
                 LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(Global.REQUEST_STOP));
+            }else if (Rules.isCameraOn && !packages.contains("alwayson")){
+                Rules.isCameraOn = false;
             }
         }
     }

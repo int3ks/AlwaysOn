@@ -3,12 +3,19 @@ package io.github.domi04151309.alwayson
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.ComponentName
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.KeyEvent
 import androidx.preference.PreferenceManager
+
 
 @SuppressLint("Registered")
 open class OffActivity : Activity() {
@@ -17,7 +24,7 @@ open class OffActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = when (PreferenceManager.getDefaultSharedPreferences(this).getString("orientation", "locked")) {
             "portrait" -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            "landscape" ->  ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            "landscape" -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             else -> ActivityInfo.SCREEN_ORIENTATION_LOCKED
         }
         super.onCreate(savedInstanceState)
@@ -36,14 +43,13 @@ open class OffActivity : Activity() {
                         AudioManager.ADJUST_LOWER, 0)
                 true
             }
-            else -> true
+            else -> super.onKeyDown(keyCode, event)
         }
     }
 
-    override fun onPause() {
+    /*override fun onPause() {
         super.onPause()
-        val activityManager = applicationContext
-                .getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        activityManager.moveTaskToFront(taskId, 0)
-    }
+       // val activityManager = applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+       // activityManager.moveTaskToFront(taskId, 0)
+    }*/
 }

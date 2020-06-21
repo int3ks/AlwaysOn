@@ -15,8 +15,6 @@ import io.github.domi04151309.alwayson.BuildConfig
 import io.github.domi04151309.alwayson.TurnOnScreen
 import io.github.domi04151309.alwayson.alwayson.AlwaysOn
 import io.github.domi04151309.alwayson.objects.Global
-import io.github.domi04151309.alwayson.preferences.Preferences
-import io.github.domi04151309.alwayson.preferences.RulesActivity
 import io.github.domi04151309.alwayson.preferences.RulesActivity.PreferenceFragment.Companion.DEFAULT_END_TIME
 import io.github.domi04151309.alwayson.preferences.RulesActivity.PreferenceFragment.Companion.DEFAULT_START_TIME
 import java.io.File
@@ -80,15 +78,14 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
             }
         }
 
-        private var isScreenOn: Boolean = false
+        @JvmField
+        var isCameraOn: Boolean = false
+        var isScreenOn: Boolean = false
         var alwaysonSwitchScreenOn: Boolean = false
         var OngoingPhonecall: Boolean = false
         var batteryLevel: Int = 0
         var isPlugged: Boolean = false
-        var AlwaysOnRequestScreenOff: Boolean = false
         var isInPocket: Boolean = false
-
-        //var isScreenOn: Boolean = true
         var isAlwaysOnRunning: Boolean = false
     }
 
@@ -116,7 +113,10 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
     }
 
     private fun AlwaysOnShouldBeRunning(): Boolean {
-
+        if(isCameraOn){
+            LogInfo("should NOT run (Camera is On)")
+            return false
+        }
 
         if (isScreenOn) {
             LogInfo("should NOT run (screenIsOn)")
@@ -161,54 +161,12 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
         return true
     }
 
-    /*private var screenOffThread: Thread? = null
-    fun OnScreenOff(){
-        isScreenOn=false
-        LogInfo( "screen OFF event")
-            screenOffThread = object : Thread() {
-                override fun run() {
-                    try {
-                        sleep( 1500)
-                        if(!isInterrupted) {
-                            LogInfo( "screen OFF event trhread")
-                            if (isAlwaysOnDisplayEnabled()) {
-                                //if (!AlwaysOnRequestScreenOff) {
-                                    checkAlwaysOnRuningState("ScreenOff")
-                                //}else{
-                                 //   LogInfo("AlwaysOnRequestScreenOff do nothing")
-                               // }
-
-
-                            }
-                        }
-                    }catch (e: java.lang.Exception){}
-                }
-            }
-            screenOffThread?.start()
-
-    }
-*/
-    /* fun OnScreenOn() {
-         isScreenOn = true
-         screenOffThread?.interrupt()
-         if(alwaysonSwitchScreenOn){
-             alwaysonSwitchScreenOn = false
-             LogInfo( "screen ON event (alwayson)")
-         }else{
-             LogInfo( "screen ON event (user)")
-         }
-
-         AlwaysOnRequestScreenOff = false
-     }*/
-
     fun OnScreenOff() {
         isScreenOn = false
         LocalBroadcastManager.getInstance(c).sendBroadcast(Intent(Global.REQUEST_STOP))
         LogInfo("screen OFF event")
         if (isAlwaysOnDisplayEnabled()) {
-            //if (!AlwaysOnRequestScreenOff) {
             checkAlwaysOnRuningState("ScreenOff")
-            // }
         }
     }
 
@@ -220,7 +178,6 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
         } else {
             LogInfo("screen ON event (user)")
         }
-        AlwaysOnRequestScreenOff = false
     }
 
 

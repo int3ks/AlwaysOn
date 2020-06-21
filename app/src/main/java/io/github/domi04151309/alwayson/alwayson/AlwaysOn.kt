@@ -77,7 +77,6 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
     private var mediaCtl: MediaController? = null
 
     //Threads
-    private var aoAnimateIconsThread: Thread? = null
     private var animationThread: Thread = Thread()
 
     //Settings
@@ -163,6 +162,10 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         dateTimeFilter.addAction(Intent.ACTION_TIMEZONE_CHANGED)
 
         mDateChangedReceiver = object : BroadcastReceiver() {
+            init {
+                setClockAndDate()
+            }
+
             override fun onReceive(c: Context, intent: Intent) {
                 setClockAndDate()
                 val prefs = PreferenceManager.getDefaultSharedPreferences(c)
@@ -171,72 +174,87 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
                     LocalBroadcastManager.getInstance(c).sendBroadcast(Intent(Global.REQUEST_STOP_AND_SCREENOFF))
                 }
             }
+
+            private fun setClockAndDate() {
+
+                if (minuteTxt != null) {
+                    minuteTxt.text = getClockText().split(":")[1]
+                    hourTxt.text = getClockText().split(":")[0]
+                }
+                if (clockTxt != null) {
+                    clockTxt.text = getClockText()
+                }
+
+                dateTxt!!.text = dateFormat.format(Calendar.getInstance())
+            }
+
+            private fun getClockText(): CharSequence {
+                return if (userTheme == "oneplus") {
+                    Html.fromHtml(clockFormat.format(Calendar.getInstance()).replaceFirst("1", "<font color='#aa0000'>1</font>").replace("\n", "<br>"))
+                } else {
+                    clockFormat.format(Calendar.getInstance())
+                }
+            }
+
+
         }
 
         registerReceiver(mDateChangedReceiver, dateTimeFilter)
-        //setClockAndDate()
+        //mDateChangedReceiver.setClockAndDate()
     }
 
-    private fun setClockAndDate() {
 
-        //if (userTheme.equals("alwaysonstyle")) {
-        if(minuteTxt != null) {
-            minuteTxt.text = getClockText().split(":")[1]
-            hourTxt.text = getClockText().split(":")[0]
-        }
-        //} else {
-        if(clockTxt !=null) {
-            clockTxt.text = getClockText()
-        }
-        //}
+    private var mBattLevelReceiver: BroadcastReceiver? = null
+    private fun checkBatteryReceiverIfNeeded(prefs: SharedPreferences) {
 
-        dateTxt!!.text = dateFormat.format(Calendar.getInstance())
-    }
+        aoBatteryIcn = prefs.getBoolean("ao_batteryIcn", false)
+        aoBattery = prefs.getBoolean("ao_battery", true)
+        if (!aoBatteryIcn) batteryIcn.visibility = View.GONE
+        if (!aoBattery) batteryTxt.visibility = View.GONE
+        if (aoBattery || aoBatteryIcn) {
 
-    private fun getClockText(): CharSequence {
-        return if (userTheme == "oneplus") {
-            Html.fromHtml(clockFormat.format(Calendar.getInstance()).replaceFirst("1", "<font color='#aa0000'>1</font>").replace("\n", "<br>"))
-        } else {
-            clockFormat.format(Calendar.getInstance())
-        }
-    }
-
-    //Notifications
-    private val mBattLevelReceiver = object : BroadcastReceiver() {
-        override fun onReceive(c: Context, intent: Intent) {
-            setBattLevelIconAndText()
-        }
-    }
-
-    private fun setBattLevelIconAndText() {
-        if (aoBattery) batteryTxt!!.text = resources.getString(R.string.percent, Rules.batteryLevel)
-        if (aoBatteryIcn) {
-            if (Rules.isPlugged) {
-                when {
-                    Rules.batteryLevel >= 100 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_100_charging)
-                    Rules.batteryLevel >= 90 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_90_charging)
-                    Rules.batteryLevel >= 80 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_80_charging)
-                    Rules.batteryLevel >= 60 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_60_charging)
-                    Rules.batteryLevel >= 50 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_50_charging)
-                    Rules.batteryLevel >= 30 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_30_charging)
-                    Rules.batteryLevel >= 20 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_20_charging)
-                    Rules.batteryLevel >= 0 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_0_charging)
-                    else -> batteryIcn!!.setImageResource(R.drawable.ic_battery_unknown_charging)
+            mBattLevelReceiver = object : BroadcastReceiver() {
+                init {
+                    setBattLevelIconAndText()
                 }
-            } else {
-                when {
-                    Rules.batteryLevel >= 100 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_100)
-                    Rules.batteryLevel >= 90 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_90)
-                    Rules.batteryLevel >= 80 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_80)
-                    Rules.batteryLevel >= 60 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_60)
-                    Rules.batteryLevel >= 50 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_50)
-                    Rules.batteryLevel >= 30 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_30)
-                    Rules.batteryLevel >= 20 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_20)
-                    Rules.batteryLevel >= 10 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_20_orange)
-                    Rules.batteryLevel >= 0 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_0)
-                    else -> batteryIcn!!.setImageResource(R.drawable.ic_battery_unknown)
+
+                override fun onReceive(c: Context, intent: Intent) {
+                    setBattLevelIconAndText()
+                }
+
+                private fun setBattLevelIconAndText() {
+                    if (aoBattery) batteryTxt!!.text = resources.getString(R.string.percent, Rules.batteryLevel)
+                    if (aoBatteryIcn) {
+                        if (Rules.isPlugged) {
+                            when {
+                                Rules.batteryLevel >= 100 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_100_charging)
+                                Rules.batteryLevel >= 90 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_90_charging)
+                                Rules.batteryLevel >= 80 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_80_charging)
+                                Rules.batteryLevel >= 60 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_60_charging)
+                                Rules.batteryLevel >= 50 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_50_charging)
+                                Rules.batteryLevel >= 30 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_30_charging)
+                                Rules.batteryLevel >= 20 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_20_charging)
+                                Rules.batteryLevel >= 0 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_0_charging)
+                                else -> batteryIcn!!.setImageResource(R.drawable.ic_battery_unknown_charging)
+                            }
+                        } else {
+                            when {
+                                Rules.batteryLevel >= 100 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_100)
+                                Rules.batteryLevel >= 90 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_90)
+                                Rules.batteryLevel >= 80 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_80)
+                                Rules.batteryLevel >= 60 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_60)
+                                Rules.batteryLevel >= 50 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_50)
+                                Rules.batteryLevel >= 30 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_30)
+                                Rules.batteryLevel >= 20 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_20)
+                                Rules.batteryLevel >= 10 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_20_orange)
+                                Rules.batteryLevel >= 0 -> batteryIcn!!.setImageResource(R.drawable.ic_battery_0)
+                                else -> batteryIcn!!.setImageResource(R.drawable.ic_battery_unknown)
+                            }
+                        }
+                    }
                 }
             }
+            localManager!!.registerReceiver(mBattLevelReceiver!!, IntentFilter(Global.BATTERYLEVEL_CHANGED))
         }
     }
 
@@ -269,9 +287,8 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         }
     }
 
-    //private var notificationGrid: RecyclerView? = null
-    private val mNotificationReceiver = object : BroadcastReceiver() {
 
+    private val mNotificationReceiver = object : BroadcastReceiver() {
         @RequiresApi(Build.VERSION_CODES.P)
         override fun onReceive(c: Context, intent: Intent) {
             val count = intent.getIntExtra("count", 0)
@@ -297,7 +314,6 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
                 Global.REQUEST_STOP_AND_SCREENOFF -> {
                     finish()
                     MyAccessibility.instance?.lockScreen()
-                    Rules.AlwaysOnRequestScreenOff = true
                     Rules.isAlwaysOnRunning = false
                 }
             }
@@ -310,14 +326,16 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
 //Check prefs
         var prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        localManager = LocalBroadcastManager.getInstance(this)
+
+
         rootMode = prefs.getBoolean("root_mode", false)
         powerSaving = prefs.getBoolean("ao_power_saving", true)
         powerSaving60 = prefs.getBoolean("ao_power_saving_60", true)
 
         userTheme = prefs.getString("ao_style", "oneplus")
 
-        aoBatteryIcn = prefs.getBoolean("ao_batteryIcn", false)
-        aoBattery = prefs.getBoolean("ao_battery", true)
+
         aoMediaInfoTxt = prefs.getBoolean("ao_mediainformation", true)
         aoNotificationIcons = prefs.getBoolean("ao_notification_icons", true)
         animateIcons = prefs.getBoolean("ao_animate_icons", true)
@@ -341,9 +359,8 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             "alwaysonstyle" -> setContentView(R.layout.activity_ao_always)
         }
 
+        checkBatteryReceiverIfNeeded(prefs)
 
-        if (!aoBatteryIcn) batteryIcn.visibility = View.GONE
-        if (!aoBattery) batteryTxt.visibility = View.GONE
         if (!aoNotificationIcons) notifications_grid.visibility = View.GONE
 
         clockFormat = SimpleDateFormat(
@@ -371,17 +388,18 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
         }
 
 //Variables
-        localManager = LocalBroadcastManager.getInstance(this)
+
         frame = findViewById<View>(R.id.frame)
 
         var alpha = (PreferenceManager.getDefaultSharedPreferences(this).getInt("ao_fingerprint_visibility", 3)) / 10f
         fingersensor_ico.alpha = alpha
 
         var britness = (PreferenceManager.getDefaultSharedPreferences(this).getInt("ao_brightness", 7)) / 10f
-        batteryinfo.alpha = britness
-        dateTxt.alpha = britness
+        batteryinfo?.alpha = britness
+        dateTxt?.alpha = britness
         clockTxt?.alpha = britness
-
+        hourTxt?.alpha = britness
+        minuteTxt?.alpha = britness
 
 //Show on lock screen
         Handler().postDelayed({
@@ -435,6 +453,8 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             }
         }
         animationThread.start()
+
+
         mediaInfo.visibility = View.GONE
         if (aoMediaInfoTxt) {
             msm = this.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
@@ -447,10 +467,7 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             }
         }
 
-        if (aoBattery || aoBatteryIcn) {
-            localManager!!.registerReceiver(mBattLevelReceiver, IntentFilter(Global.BATTERYLEVEL_CHANGED))
-            setBattLevelIconAndText()
-        }
+
         localManager!!.registerReceiver(mStopReceiver, IntentFilter(Global.REQUEST_STOP_AND_SCREENOFF))
         localManager!!.registerReceiver(mStopReceiver, IntentFilter(Global.REQUEST_STOP))
 
@@ -642,8 +659,6 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
             servicesRunning = true
 
             setTouchlistener(true)
-// Date Receiver
-
 
 // Notification Listener
             if (aoMediaInfoTxt || aoNotificationIcons || animateIcons) {
@@ -738,16 +753,14 @@ class AlwaysOn : OffActivity(), MediaSessionManager.OnActiveSessionsChangedListe
 
         Rules.isAlwaysOnRunning = false
 
-        if (animateIcons) aoAnimateIconsThread?.interrupt()
+
         animationThread.interrupt()
 
         // Date Receiver
         mDateChangedReceiver?.let { unregisterReceiver(it) }
 
         localManager!!.unregisterReceiver(mStopReceiver)
-        if (aoBattery || aoBatteryIcn) {
-            localManager!!.unregisterReceiver(mBattLevelReceiver)
-        }
+        mBattLevelReceiver?.let { localManager!!.unregisterReceiver(it) }
     }
 
     private fun hideUI() {

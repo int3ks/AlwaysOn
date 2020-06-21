@@ -45,7 +45,6 @@ object Global {
 
     fun close_old(context: Context) {
         MyAccessibility.instance?.lockScreen()
-        Rules.AlwaysOnRequestScreenOff = true
         (context as Activity).finish()
     }
 

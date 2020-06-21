@@ -69,7 +69,7 @@ class MainActivity : Activity() {
 
     private val isDeviceAdmin: Boolean
         get() {
-            return   MyAccessibility.isAccessibilitySettingsOn(this)
+            return MyAccessibility.isAccessibilitySettingsOn(this)
 
         }
 
@@ -110,8 +110,7 @@ class MainActivity : Activity() {
         val dateFormat = if (clock) {
             if (amPm) "h:mm a"
             else "h:mm"
-        }
-        else "H:mm"
+        } else "H:mm"
 
         clockTxt = findViewById(R.id.clockTxt)
         dateTxt = findViewById(R.id.dateTxt)
@@ -140,13 +139,11 @@ class MainActivity : Activity() {
                     arrayOf(Manifest.permission.READ_PHONE_STATE),
                     0)
         }
-    }
 
-    override fun onStart() {
-        super.onStart()
+        if (!isDeviceAdmin) startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
 
-        if(!Settings.System.canWrite(this)){
-            requestPermissions(arrayOf(Manifest.permission.WRITE_SETTINGS),101);
+        if (!Settings.System.canWrite(this)) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_SETTINGS), 101);
         }
 
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -156,71 +153,78 @@ class MainActivity : Activity() {
         try {
             var userRefresh = Settings.Global.getInt(this.contentResolver, "oneplus_screen_refresh_rate", 1)
             Settings.Global.putInt(this.contentResolver, "oneplus_screen_refresh_rate", userRefresh)
-            permission.visibility= View.GONE
+            permission.visibility = View.GONE
         } catch (e: java.lang.Exception) {
             Root.WriteSupportBatch(this)
-            permission.text="You have to grant permission in adbshell -> \nadb shell pm grant "+ this.packageName + "\nandroid.permission.WRITE_SECURE_SETTINGS\n\nyou find a batch on sdcard in \\Android\\data\\"+ this.packageName + "\\files\\"
-            permission.visibility= View.VISIBLE
+            permission.text = "You have to grant permission in adbshell -> \nadb shell pm grant " + this.packageName + "\nandroid.permission.WRITE_SECURE_SETTINGS\n\nyou find a batch on sdcard in \\Android\\data\\" + this.packageName + "\\files\\"
+            permission.visibility = View.VISIBLE
         }
 
 
         isDeviceRoot
-        if (!isDeviceAdmin)startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+
         if (!isNotificationServiceEnabled) startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-        if (!Settings.canDrawOverlays(this))startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
+        if (!Settings.canDrawOverlays(this)) startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
 
 
-            val intent = Intent()
-            val packageName = packageName
-            val pm: PowerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                intent.data = Uri.parse("package:$packageName")
-                startActivity(intent)
-            }
+        val intent = Intent()
+        val packageName = packageName
+        val pm: PowerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+            intent.data = Uri.parse("package:$packageName")
+            startActivity(intent)
+        }
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+
 
 
     }
 
-   /* private fun buildDialog(case: Int) {
-        val builder = AlertDialog.Builder(ContextThemeWrapper(this, R.style.DialogTheme))
+    /* private fun buildDialog(case: Int) {
+         val builder = AlertDialog.Builder(ContextThemeWrapper(this, R.style.DialogTheme))
 
-        when (case) {
-            1 -> {
-                builder.setTitle(R.string.device_admin)
-                builder.setMessage(R.string.device_admin_summary)
-                builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
-                    //startActivity(Intent(this@MainActivity, PermissionPreferences::class.java))
-                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                    dialog.cancel()
-                    finish()
-                }
-            }
-            2 -> {
-                builder.setTitle(R.string.notification_listener_service)
-                builder.setMessage(R.string.notification_listener_service_summary)
-                builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
-                    startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-                    dialog.cancel()
-                    finish()
-                }
-            }
-            3 -> {
-                builder.setTitle(R.string.setup_draw_over_other_apps)
-                builder.setMessage(R.string.setup_draw_over_other_apps_summary)
-                builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
-                    startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
-                    dialog.cancel()
-                    finish()
-                }
-            }
-            else -> return
-        }
+         when (case) {
+             1 -> {
+                 builder.setTitle(R.string.device_admin)
+                 builder.setMessage(R.string.device_admin_summary)
+                 builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
+                     //startActivity(Intent(this@MainActivity, PermissionPreferences::class.java))
+                     startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                     dialog.cancel()
+                     finish()
+                 }
+             }
+             2 -> {
+                 builder.setTitle(R.string.notification_listener_service)
+                 builder.setMessage(R.string.notification_listener_service_summary)
+                 builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
+                     startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                     dialog.cancel()
+                     finish()
+                 }
+             }
+             3 -> {
+                 builder.setTitle(R.string.setup_draw_over_other_apps)
+                 builder.setMessage(R.string.setup_draw_over_other_apps_summary)
+                 builder.setPositiveButton(resources.getString(android.R.string.ok)) { dialog, _ ->
+                     startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), 1)
+                     dialog.cancel()
+                     finish()
+                 }
+             }
+             else -> return
+         }
 
-        builder.setNegativeButton(resources.getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
+         builder.setNegativeButton(resources.getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
 
-        builder.show()
-    }*/
+         builder.show()
+     }*/
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {

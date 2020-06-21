@@ -11,6 +11,7 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
 import android.service.quicksettings.TileService
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
 import io.github.domi04151309.alwayson.R
@@ -18,6 +19,7 @@ import io.github.domi04151309.alwayson.alwayson.AlwaysOnQS
 import io.github.domi04151309.alwayson.helpers.Rules
 import io.github.domi04151309.alwayson.receivers.CombinedServiceReceiver
 import java.lang.Exception
+import kotlin.math.log
 
 class ForegroundService : Service(), SensorEventListener {
 
@@ -32,7 +34,6 @@ class ForegroundService : Service(), SensorEventListener {
     private var mProximity: Sensor? = null
 
     companion object {
-        private var lastIsInPocketState: Boolean=false
         const val CHANNEL_ID = "service_channel"
         private const val SENSOR_DELAY_SLOW: Int = 1000000
     }
@@ -61,12 +62,10 @@ class ForegroundService : Service(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-
-    //Proximity
-
-    //var timeStartInPocket :Long = 0
     private var inPocketThread: Thread? = null
     override fun onSensorChanged(p0: SensorEvent?) {
+        Log.i("sensorchange","sensorchange")
+
         if (p0!!.sensor.type == Sensor.TYPE_PROXIMITY) {
             var currentInPocketState = p0.values[0] != p0.sensor.maximumRange
 
@@ -74,13 +73,12 @@ class ForegroundService : Service(), SensorEventListener {
                  inPocketThread = object : Thread() {
                     override fun run() {
                         try {
-                            sleep(5 * 1000)
+                            sleep(3 * 1000)
                             if(!isInterrupted) {
                                 Rules.isInPocket = true
                                 if(Rules.isAlwaysOnRunning) {
                                     Rules.StopAlwaysOn(this@ForegroundService, "isInPocket")
                                 }
-                                //rules.checkAlwaysOnRuningState("SensorChange in pocket")
                             }
                         }catch (e:Exception){}
                     }
