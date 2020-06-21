@@ -44,10 +44,7 @@ class LAFBehaviorPreferences : AppCompatActivity(),
                 true
             }
             
-            if(!PreferenceManager.getDefaultSharedPreferences(context).getBoolean("root_mode", false)) {
-                //findPreference<SwitchPreference>("ao_power_saving")!!.isEnabled = false
-                findPreference<SwitchPreference>("heads_up")!!.isEnabled = false
-            }
+
         }
     }
 }

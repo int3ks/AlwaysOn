@@ -10,7 +10,7 @@
     tools:showIn="@layout/activity_ao_samsung_2">
 
     <ImageView
-        android:id="@+id/fingersensor"
+        android:id="@+id/fingersensor_ico"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:padding="5dp"

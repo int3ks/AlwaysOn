@@ -15,6 +15,14 @@
         android:orientation="vertical"
         tools:ignore="UselessParent">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+
+        android:orientation="horizontal"
+        android:id="@+id/clockFrame"
+        >
         <TextView
             android:id="@+id/clockTxt"
             android:layout_width="match_parent"
@@ -26,7 +34,7 @@
             android:lineSpacingMultiplier="0.72"
             android:text="@string/clock2"
             android:textSize="75sp" />
-
+    </LinearLayout>
         <TextView
             android:id="@+id/dateTxt"
             android:layout_width="match_parent"
@@ -46,7 +54,9 @@
             android:layout_marginBottom="@dimen/aod_spacing"
             android:layout_gravity="center"
             android:orientation="horizontal"
-            tools:ignore="UseCompoundDrawables">
+            tools:ignore="UseCompoundDrawables"
+            android:id="@+id/batteryinfo"
+            >
 
             <TextView
                 android:id="@+id/batteryTxt"

@@ -5,20 +5,7 @@
         android:key="ao_style"
         android:summary="@string/pref_look_and_feel_ao_summary"
         android:title="@string/pref_look_and_feel_ao" />
-    <SwitchPreference
-        android:defaultValue="true"
-        android:icon="@drawable/ic_clock"
-        android:key="ao_clock"
-        android:summaryOff="@string/pref_disabled"
-        android:summaryOn="@string/pref_enabled"
-        android:title="@string/pref_ao_showClock" />
-    <SwitchPreference
-        android:defaultValue="true"
-        android:icon="@drawable/ic_date"
-        android:key="ao_date"
-        android:summaryOff="@string/pref_disabled"
-        android:summaryOn="@string/pref_enabled"
-        android:title="@string/pref_ao_showDate" />
+
     <SwitchPreference
         android:defaultValue="false"
         android:icon="@drawable/ic_battery"
@@ -73,6 +60,13 @@
         android:key="ao_fingerprint_visibility"
         android:summary="Visibility of the fingerprint icon (0 to 10)"
         android:title="Fingerprint visibility" />
+
+    <io.github.domi04151309.alwayson.preferences.EditIntegerPreference
+        android:defaultValue="7"
+        android:icon="@drawable/ic_always_on"
+        android:key="ao_brightness"
+        android:summary="Brightness, alpha of AO (0 to 10)"
+        android:title="Brightness" />
 
     <Preference
         android:icon="@drawable/ic_notification"

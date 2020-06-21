@@ -4,17 +4,24 @@ package io.github.domi04151309.alwayson.helpers
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.os.Debug
 import android.os.PowerManager
 import android.text.format.DateFormat
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import io.github.domi04151309.alwayson.BuildConfig
 import io.github.domi04151309.alwayson.TurnOnScreen
 import io.github.domi04151309.alwayson.alwayson.AlwaysOn
 import io.github.domi04151309.alwayson.objects.Global
+import io.github.domi04151309.alwayson.preferences.Preferences
+import io.github.domi04151309.alwayson.preferences.RulesActivity
+import io.github.domi04151309.alwayson.preferences.RulesActivity.PreferenceFragment.Companion.DEFAULT_END_TIME
+import io.github.domi04151309.alwayson.preferences.RulesActivity.PreferenceFragment.Companion.DEFAULT_START_TIME
 import java.io.File
 import java.io.FileOutputStream
+import java.util.*
 
 
 class Rules(private val c: Context, private val prefs: SharedPreferences) {
@@ -24,18 +31,10 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
     private var start = Calendar.getInstance()
     private var end = Calendar.getInstance()
 
+
+
+
     init {
-        val startString = prefs.getString("rules_time_start", "0:00") ?: "0:00"
-        val endString = prefs.getString("rules_time_end", "0:00") ?: "0:00"
-        start[Calendar.MILLISECOND] = 0
-        start[Calendar.SECOND] = 0
-        start[Calendar.MINUTE] = startString.substringAfter(":").toInt()
-        start[Calendar.HOUR_OF_DAY] = startString.substringBefore(":").toInt()
-        end[Calendar.MILLISECOND] = 0
-        end[Calendar.SECOND] = 0
-        end[Calendar.MINUTE] = endString.substringAfter(":").toInt()
-        end[Calendar.HOUR_OF_DAY] = endString.substringBefore(":").toInt()
-        if (start.after(end)) end.add(Calendar.DATE, 1)
 
     }
 
@@ -53,29 +52,31 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
         }
 
         fun LogInfo(c: Context, txt: String) {
-            Log.i("checkRunningState:", txt)
-            try {
-                val newFolder = c.getExternalFilesDir(null)
-                if (!newFolder!!.exists()) {
-                    newFolder.mkdir()
+            if (BuildConfig.DEBUG) {
+                Log.i("checkRunningState:", txt)
+                try {
+                    val newFolder = c.getExternalFilesDir(null)
+                    if (!newFolder!!.exists()) {
+                        newFolder.mkdir()
+                    }
+                    val date = java.util.Calendar.getInstance().time
+
+                    val file = File(newFolder, "${DateFormat.format("yyyy-MM-dd", date)}_checkRunningState.txt")
+                    file.createNewFile()
+                    val fos: FileOutputStream
+                    fos = FileOutputStream(file, true)
+
+
+                    val sDate = "${DateFormat.format("hh:mm:ss ", date)}".trimIndent()
+                    fos.write(sDate.toByteArray())
+                    fos.flush()
+                    val data = (txt + "\n").toByteArray()
+                    fos.write(data)
+                    fos.flush()
+                    fos.close()
+                } catch (e1: Exception) {
+                    //*wenn das nich geht , dann nacht mattes ;) *//*
                 }
-                val date = java.util.Calendar.getInstance().time
-
-                val file = File(newFolder, "${DateFormat.format("yyyy-MM-dd", date)}_checkRunningState.txt")
-                file.createNewFile()
-                val fos: FileOutputStream
-                fos = FileOutputStream(file, true)
-
-
-                val sDate = "${DateFormat.format("hh:mm:ss ", date)}".trimIndent()
-                fos.write(sDate.toByteArray())
-                fos.flush()
-                val data = (txt + "\n").toByteArray()
-                fos.write(data)
-                fos.flush()
-                fos.close()
-            } catch (e1: Exception) {
-                /*wenn das nich geht , dann nacht mattes ;) */
             }
         }
 
@@ -107,7 +108,7 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
 
         } else {
             if (isAlwaysOnRunning) {
-                StopAlwaysOn(c,because)
+                StopAlwaysOn(c, because)
             } else {
                 LogInfo("should NOT run AND Isnt running")
             }
@@ -212,7 +213,7 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
     }
 
     fun OnScreenOn() {
-        isScreenOn=true
+        isScreenOn = true
         if (alwaysonSwitchScreenOn) {
             alwaysonSwitchScreenOn = false
             LogInfo("screen ON event (alwayson)")
@@ -264,20 +265,45 @@ class Rules(private val c: Context, private val prefs: SharedPreferences) {
         return batteryLevel > prefs.getInt("rules_battery_level", 0)
     }
 
+
+
+
+
+
+
+
     fun isInTimePeriod(): Boolean {
+        var clockFormat = SimpleDateFormat("H:mm", Locale.getDefault())
+        val startString = prefs.getString("rules_time_start", DEFAULT_START_TIME) ?: DEFAULT_START_TIME
+        val endString = prefs.getString("rules_time_end", DEFAULT_END_TIME) ?: DEFAULT_END_TIME
+        start[Calendar.MILLISECOND] = 0
+        start[Calendar.SECOND] = 0
+        start[Calendar.MINUTE] = startString.substringAfter(":").toInt()
+        start[Calendar.HOUR_OF_DAY] = startString.substringBefore(":").toInt()
+        end[Calendar.MILLISECOND] = 0
+        end[Calendar.SECOND] = 0
+        end[Calendar.MINUTE] = endString.substringAfter(":").toInt()
+        end[Calendar.HOUR_OF_DAY] = endString.substringBefore(":").toInt()
+        if (start.after(end)) end.add(Calendar.DATE, 1)
 
         if (start.equals(end)) {
             return true
         }
-        return now.after(start) && now.before(end)
+        if( now.after(start) && now.before(end)){
+            return true
+        }
+        var clk = "notInTime now:${clockFormat.format(now)} start:${clockFormat.format(start)} start:${clockFormat.format(end)}"
+        LogInfo(clk)
+
+        return false;
     }
 
-    fun millisTillEnd(): Long {
+   /* fun millisTillEnd(): Long {
         if (start.equals(end)) {
             return -1
         }
         return end.time.time - now.time.time
     }
-
+*/
 
 }
